@@ -12,16 +12,22 @@ classdef nanobot
         function obj = nanobot(serialPort, baudRate)
             % Find all open serial ports
             serialPorts = instrfind('Type', 'serial');
-
             % Close all open serial ports
             if ~isempty(serialPorts)
                 fclose(serialPorts);
             end
-
             obj.serialPort = serialPort;
             obj.baudRate = baudRate;
             obj.arduino = serial(serialPort, 'BaudRate', baudRate);
+      
             fopen(obj.arduino);
+            pause(0.5);
+            obj.init('arduino',0,0)
+            if isvalid(obj.arduino)
+                disp('Connection established')
+            else
+                disp('Failed to establish connection')
+            end
         end
 
         % Destructor
@@ -46,6 +52,16 @@ classdef nanobot
             obj.write('digital', obj.convertPin(pin), value);
         end
 
+        % Method to set a motor value
+        function setMotor(obj, pin, value)
+            obj.write('motor', pin, value);
+        end
+
+        % Method to set a servo angle
+        function setServo(obj, pin, value)
+            obj.write('servo', pin, value);
+        end
+
         % Method to perform accelRead operation
         function values = accelRead(obj)
             values = obj.read('accel', 0);
@@ -56,6 +72,54 @@ classdef nanobot
             obj.write('led', 0, value);
         end
 
+        % Method to initialize the ultrasonic rangefinder
+        function initUltrasonic(obj,trigpin,echopin)
+            obj.init('ultrasonic',trigpin,echopin)
+        end
+
+        % Method to take an ultrasonic distance reading
+        function value = ultrasonicRead(obj)
+            value = obj.read('ultrasonic',0);
+        end
+
+        % Method to initialize a piezo buzzer
+        function initPiezo(obj,tonepin)
+            obj.init('piezo',tonepin)
+        end
+
+        % Method to send a piezo tone
+        function setPiezo(obj,frequency, duration)
+            obj.write('piezo',frequency,duration)
+        end
+
+        function values = encoderRead(obj, num)
+            values = obj.read('encoder',num);
+        end
+
+        % TODO: Method to initialize the reflectance array
+
+
+        % TODO: Method to initialize the Hall effect board
+
+
+
+        % TODO: Method to initialize the color sensor
+
+
+        % TODO: Method to read from the reflectance array
+
+
+        % TODO: Method to read from the Hall effect board
+
+
+        % TODO: Method to read from the reflectance array
+
+        % Method to set pin modes on the Arduino
+        function pinMode(obj, pin, mode)
+            obj.init('pinmode',pin,mode)
+        end
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Method to send JSON packet
         function sendJSON(obj, mode, periph, pin, value)
             % Create a struct for the JSON packet
@@ -90,6 +154,7 @@ classdef nanobot
         function value = read(obj, periph, pin)
             pinNum = obj.convertPin(pin);
             obj.sendJSON('read', periph, pinNum, 0);
+
             % Read the JSON reply
             jsonString = fgetl(obj.arduino);
             jsonReply = jsondecode(jsonString);
@@ -105,8 +170,15 @@ classdef nanobot
                     else
                         error('Invalid accelerometer values');
                     end
-                case {'digital', 'analog'}
-                    % For 'digital' and 'analog', we expect a 'value' field
+                case 'encoder'
+                    if isfield(jsonReply, 'count') && isfield(jsonReply, 'countper')
+                        value.counts = jsonReply.count;
+                        value.countspersec = jsonReply.countper;
+                    else
+                        error('Invalid accelerometer values');
+                    end
+                case {'digital', 'analog', 'ultrasonic'}
+                    % For 'digital', 'analog', and 'ultrasonic', we expect a 'value' field
                     if isfield(jsonReply, 'value')
                         value = jsonReply.value;
                     else
@@ -125,28 +197,45 @@ classdef nanobot
                     obj.sendJSON('write', periph, pinNum, value);
                 case 'led'
                     obj.sendJSON('write', periph, 0, value);
+                case 'piezo'
+                    obj.sendJSON('write', periph, pin, value);
+                case 'motor'
+                    obj.sendJSON('write', periph, pin, value);
+                case 'servo'
+                    obj.sendJSON('write', periph, pin, value);
             end
-            jsonString = fgetl(obj.arduino);
-            jsonReply = jsondecode(jsonString);
-            % Check if the message field in the JSON reply is "ack"
-            if isfield(jsonReply, 'message') && strcmp(jsonReply.message, 'ack')
-                % Acknowledgment received, do nothing
-            else
-                % No acknowledgment received, display error message
-                disp('Error: No acknowledgment received from Arduino');
-            end
+            obj.waitAck()
         end
 
-        % Method to set pin modes on the Arduino
-        function pinMode(obj, periph, pin)
-            % Send JSON packet to Arduino to set pin mode
-            pinNum = obj.convertPin(pin);
-            obj.sendJSON('init', periph, pinNum, 0);
+        % Method to perform init operation
+        function init(obj, periph, pin, value)
+            switch periph
+                case 'arduino'
+                    obj.sendJSON('init',periph,0,0);
+                case 'ultrasonic'
+                    trigPin = obj.convertPin(pin);
+                    echoPin = obj.convertPin(value);
+                    obj.sendJSON('init', periph, trigPin, echoPin);
+                case 'piezo'
+                    tonepin = obj.convertPin(pin);
+                    obj.sendJSON('init', periph, tonepin, 0);
+                case 'pinmode'
+                    pinNum = obj.convertPin(pin);
+                    obj.sendJSON('init', value, pinNum, 0);
+            end
+            obj.waitAck()
+        end
+
+        % Method to wait for an ack from Arduino
+        function waitAck(obj)
             jsonString = fgetl(obj.arduino);
             jsonReply = jsondecode(jsonString);
             % Check if the message field in the JSON reply is "ack"
             if isfield(jsonReply, 'message') && strcmp(jsonReply.message, 'ack')
                 % Acknowledgment received, do nothing
+            elseif isfield(jsonReply, 'message') && strcmp(jsonReply.message, 'error')
+                % Error received, tell the user
+                disp('Error received: Have you initialized the peripheral? Is this a valid pin or value?')
             else
                 % No acknowledgment received, display error message
                 disp('Error: No acknowledgment received from Arduino');
@@ -173,7 +262,12 @@ classdef nanobot
             yDataX = [];
             yDataY = [];
             yDataZ = [];
-   
+
+            % Add a 'Stop' button to the figure
+            stopButton = uicontrol('Style', 'pushbutton', 'String', 'Stop',...
+                'Position', [10 20 50 20],...
+                'Callback', @(src, event) close(gcbf));
+
             % Start the live plotting
             startTime = now;
             while ishandle(obj.plotFigure)
@@ -225,13 +319,14 @@ classdef nanobot
                 % Update x-axis and y-axis labels
                 xlabel(obj.plotAxes, 'Time (seconds)');
                 ylabel(obj.plotAxes, 'Value');
-                % Check for plot closure
-                if ~ishandle(obj.plotFigure)
-                    break;
-                end
+
+
                 % Pause for a short duration
                 pause(0.05);
             end
         end
+
     end
+
+
 end
