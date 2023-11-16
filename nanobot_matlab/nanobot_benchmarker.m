@@ -2,10 +2,10 @@ clc
 clear all
 
 % Create an instance of the nanobot class
-nb = nanobot('/dev/cu.usbmodem141201', 115200);
+nb = nanobot('/dev/cu.usbmodem21101', 115200, 'wifi');
 
 % Set the number of iterations for the benchmark
-numIterations = 100;
+numIterations = 10;
 
 % Benchmark digitalRead operation
 start = tic;
@@ -72,5 +72,6 @@ disp(['Accelerometer Read Frequency: ', num2str(accelReadFreq), ' Hz']);
 disp(['Encoder Read Frequency: ', num2str(encoderReadFreq), ' Hz']);
 disp(['PID Loop Frequency: ', num2str(pidLoopFreq), ' Hz']);
 
-% Delete the nanobot instance
+% Close and clear the nanobot instance
 delete(nb);
+clear('nb');

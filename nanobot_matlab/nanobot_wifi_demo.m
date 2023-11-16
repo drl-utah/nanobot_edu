@@ -2,7 +2,19 @@ clc
 clear all
 
 % Create an instance of the nanobot class
-nb = nanobot('/dev/cu.usbmodem141201', 115200);
+nb = nanobot('/dev/cu.usbmodem21101', 115200,"wifi");
+
+%%
+% VALID PINS
+
+%The motor carrier uses many of the pins on your Arduino for interfacing
+%with the motors, encoders, and IMU. These are the ones that are still
+%valid for you to use for general purpose I/O:
+
+%Valid ANALOG pins with motor carrier installed: A2, A3, A6, A7
+%Valid DIGITAL pins with motor carrier installed: D10, D8, D7
+
+%Refer to the Arduino Nano 33 IoT PINOUT in order to find these. 
 
 %%
 % LIVE PLOT
@@ -11,17 +23,19 @@ nb = nanobot('/dev/cu.usbmodem141201', 115200);
 %the "stop" button and wait for the figure to close to exit.
 nb.livePlot('accel');
 
-%You can also plot an analog read value.
-nb.livePlot('analog','A0');
+%You can also plot an analog read value. Note that I have to initialize the pin as an analog input ("ainput")
+%first:
+nb.pinMode('A2','ainput');
+nb.livePlot('analog','A2');
 %%
 % DIGITAL READ
 
 %First set the mode of desired pin to digital input 'dinput'
     %fyi: dinput is INPUT_PULLUP, so will return 1 by default
-nb.pinMode('A2','dinput');
+nb.pinMode('D10','dinput');
 
 %Here is an example of taking a single reading:
-val = nb.digitalRead('A2');
+val = nb.digitalRead('D10');
 fprintf('val = %i\n', val)
 
 %%
@@ -128,7 +142,7 @@ nb.ledWrite(0)
 % ULTRASONIC DISTANCE
 
 %Initialize the ultrasonic sensor with TRIGPIN, ECHOPIN
-nb.initUltrasonic('A2','A3')
+nb.initUltrasonic('D8','D7')
 
 %Take a single ultrasonic reading
 val = nb.ultrasonicRead();
@@ -137,7 +151,16 @@ fprintf('val = %i\n', val)
 % PIEZO BUZZER
 
 %Initialize the piezo with the pin
-nb.initPiezo('A6')
+nb.initPiezo('D10')
 
 %Set the piezo tone with FREQUENCY [Hz], DURATION [ms]
 nb.setPiezo(600,1000)
+
+%%
+% CLOSING OUT
+
+% Close and clear the nanobot instance; if you change the name from "nb",
+% make sure to update the clear() function here
+
+delete(nb);
+clear('nb');

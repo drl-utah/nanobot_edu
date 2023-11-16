@@ -1,39 +1,82 @@
-classdef nanobot
+classdef nanobot < handle
     properties
+        u
         serialPort
         baudRate
         arduino
         plotFigure
         plotAxes
+        robotIP
+        robotPORT
+        sizeofBuffer
+        sendMode
+        wifiData
+        ready
     end
 
     methods
         % Constructor
-        function obj = nanobot(serialPort, baudRate)
-            % Find all open serial ports
-            serialPorts = instrfind('Type', 'serial');
-            % Close all open serial ports
-            if ~isempty(serialPorts)
-                fclose(serialPorts);
+        function obj = nanobot(serialPort, baudRate, connectMode)
+            if connectMode == "serial"
+                % Find all open serial ports
+                warning('off','instrument:instrfind:FunctionToBeRemoved')
+                serialPorts = instrfind('Type', 'serial');
+                % Close all open serial ports
+                if ~isempty(serialPorts)
+                    fclose(serialPorts);
+                end
+                obj.serialPort = serialPort;
+                obj.baudRate = baudRate;
+                obj.sendMode = "serial";
+                obj.arduino = serialport(serialPort, baudRate);
+                fopen(obj.arduino);
+                pause(1);
+                obj.init('arduino',0,0)
+                if isvalid(obj.arduino)
+                    disp('Connection established')
+                else
+                    disp('Failed to establish connection')
+                end
+            elseif connectMode == "wifi"
+                obj.robotIP = "192.168.1.100";
+                obj.robotPORT = 551;
+                obj.sizeofBuffer = 250;
+                obj.ready = 0;
+                obj.sendMode = "wifi";
+                obj.u = udpport("datagram");
+                flush(obj.u, "input");
+                configureCallback(obj.u, "datagram", 1, @obj.udpread);  
+
+                obj.init('wifi',0,0);
             end
-            obj.serialPort = serialPort;
-            obj.baudRate = baudRate;
-            obj.arduino = serial(serialPort, 'BaudRate', baudRate);
-      
-            fopen(obj.arduino);
-            pause(0.5);
-            obj.init('arduino',0,0)
-            if isvalid(obj.arduino)
-                disp('Connection established')
-            else
-                disp('Failed to establish connection')
+        end
+
+        function udpread(obj, varargin)
+            % READ  is a callback function designed to be called whenever
+            % there is a datagram available in the UDP buffer. This
+            % function handles the message appropriately, and never needs
+            % to be called by the user
+            try
+                % Read data and update status
+                datagramCount = obj.u.NumDatagramsAvailable;
+                uDatagram = read(obj.u, datagramCount);
+            catch
+                disp('UDP Error!');
             end
+            obj.ready = 1;
+            obj.wifiData = char(uDatagram.Data);
         end
 
         % Destructor
         function delete(obj)
-            fclose(obj.arduino);
-            delete(obj.arduino);
+            if obj.sendMode == "serial"
+                warning('off','transportlib:legacy:DoesNotCloseConnection')
+                fclose(obj.arduino);
+                delete(obj.arduino);
+            elseif obj.sendMode == "wifi"
+                flush(obj.u, "input");
+                clear obj.u
+            end
         end
 
 
@@ -131,9 +174,36 @@ classdef nanobot
             % Convert struct to JSON string
             jsonString = jsonencode(jsonPacket);
 
-            % Send the JSON string over serial
-            fprintf(obj.arduino, jsonString);
+            if obj.sendMode == "serial"
+                % Send the JSON string over serial
+                fprintf(obj.arduino, jsonString);
+            elseif obj.sendMode == "wifi"
+                sendOverUDP(obj, jsonString);
+            end
         end
+
+        function [jsonReply] = receiveJSON(obj)
+            if obj.sendMode == "serial"
+                jsonString = fgetl(obj.arduino);
+                jsonReply = jsondecode(jsonString);
+            elseif obj.sendMode == "wifi"
+                while obj.ready == 0
+                    pause(0.010);
+                end
+                jsonString = obj.wifiData;
+                jsonReply = jsondecode(jsonString);
+                obj.ready = 0;
+            end
+        end
+
+        function sendOverUDP(obj, dataString)
+            % SENDOVERUDP  sends a string over UDP to the established UDP
+            % host. This isn't designed to used directly by the user, but
+            % rather by this class to streamline communication.
+            
+            write(obj.u, dataString, obj.robotIP, obj.robotPORT); %Sends the data over UDP
+        end
+
 
         % Method to convert pin notation (e.g., A1, D2) to numeric value
         function pinNum = convertPin(obj, pin)
@@ -156,8 +226,7 @@ classdef nanobot
             obj.sendJSON('read', periph, pinNum, 0);
 
             % Read the JSON reply
-            jsonString = fgetl(obj.arduino);
-            jsonReply = jsondecode(jsonString);
+            jsonReply = obj.receiveJSON();
 
             % Depending on the peripheral, read the appropriate values
             switch periph
@@ -222,14 +291,15 @@ classdef nanobot
                 case 'pinmode'
                     pinNum = obj.convertPin(pin);
                     obj.sendJSON('init', value, pinNum, 0);
+                case 'wifi'
+                    obj.sendJSON('init',periph,0,0);
             end
             obj.waitAck()
         end
 
         % Method to wait for an ack from Arduino
         function waitAck(obj)
-            jsonString = fgetl(obj.arduino);
-            jsonReply = jsondecode(jsonString);
+            jsonReply = obj.receiveJSON();
             % Check if the message field in the JSON reply is "ack"
             if isfield(jsonReply, 'message') && strcmp(jsonReply.message, 'ack')
                 % Acknowledgment received, do nothing
@@ -325,7 +395,6 @@ classdef nanobot
                 pause(0.05);
             end
         end
-
     end
 
 

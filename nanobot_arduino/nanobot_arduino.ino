@@ -1,6 +1,14 @@
+#include <WiFiNINA.h>
 #include <ArduinoJson.h>
 #include <Arduino_LSM6DS3.h>
 #include <ArduinoMotorCarrier.h>
+#include <WiFiUdp.h>
+#include "udp_access_point.h"
+
+int sendMode = 1; //0 for serial, 1 for wifi
+
+// create the WiFi-UDP object
+udp_access_point * wifi;
 
 const size_t JSON_BUFFER_SIZE = 128;
 char jsonBuffer[JSON_BUFFER_SIZE];
@@ -43,8 +51,7 @@ void performAccelRead() {
   replyDoc["z"] = z;
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
-  Serial.write(replyBuffer, replySize);
-  Serial.println();
+  sendJson(replyBuffer,replySize);
 }
 
 void performUltrasonicRead() {
@@ -83,8 +90,7 @@ void performEncoderRead(int pin){
   replyDoc["countper"] = countper;
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
-  Serial.write(replyBuffer, replySize);
-  Serial.println();
+  sendJson(replyBuffer,replySize);
 }
 
 void performPiezoTone(int frequency, int duration) {
@@ -142,8 +148,7 @@ void sendJsonValue(int val){
   replyDoc["value"] = val;
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
-  Serial.write(replyBuffer, replySize);
-  Serial.println();
+  sendJson(replyBuffer,replySize);
 }
 
 void sendAck(){
@@ -151,8 +156,7 @@ void sendAck(){
   replyDoc["message"] = "ack";
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
-  Serial.write(replyBuffer, replySize);
-  Serial.println();
+  sendJson(replyBuffer, replySize);
 }
 
 void sendError(){
@@ -160,8 +164,19 @@ void sendError(){
   replyDoc["message"] = "error";
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
-  Serial.write(replyBuffer, replySize);
-  Serial.println();
+  sendJson(replyBuffer,replySize);
+}
+
+void sendJson(char replyBuffer[JSON_BUFFER_SIZE], size_t replySize){
+  if (sendMode==0){
+    Serial.write(replyBuffer, replySize);
+    Serial.println();
+  }
+  else if (sendMode==1){
+    wifi->sendPacket(replyBuffer);
+    Serial.print("Sent: ");
+    Serial.println(replyBuffer);
+  }
 }
 
 void setup() {
@@ -176,16 +191,40 @@ void setup() {
   encoder2.resetCounter(0);
   
   Serial.begin(115200);
-  while(!Serial);
+
+  if (sendMode == 0){ //Only hang here if the arduino is for serial comm
+    while(!Serial);
+  }
+
+  if (sendMode == 1){ //Only do this if the arduino is for wifi comm
+    wifi = new udp_access_point(551, IPAddress(192, 168, 1, 100));
+    if (wifi->isReady()) {
+      Serial.println("WiFi Initialized");
+    }
+  }
 }
 
 void loop() {
-  // Check if there is data available to read from serial
-  if (Serial.available() > 0) {
-    // Read the incoming data into the jsonBuffer
-    size_t bytesRead = Serial.readBytesUntil('\n', jsonBuffer, JSON_BUFFER_SIZE - 1);
-    jsonBuffer[bytesRead] = '\0'; // Null-terminate the string
-    // Parse the JSON message
+
+    if (sendMode == 0){
+      if (Serial.available() > 0) {
+        // Read the incoming data into the jsonBuffer
+        size_t bytesRead = Serial.readBytesUntil('\n', jsonBuffer, JSON_BUFFER_SIZE - 1);
+        jsonBuffer[bytesRead] = '\0'; // Null-terminate the string
+        executeCommand(jsonBuffer);
+        }
+    }
+    else if (sendMode == 1){
+      if (wifi->checkForPacket()) {
+        strncpy(jsonBuffer,wifi->getPacket(),sizeof(jsonBuffer)-1);
+        Serial.println(jsonBuffer);
+        executeCommand(jsonBuffer);
+        } 
+     }
+  }
+
+void executeCommand(String input) {
+  // Parse the JSON message
     if (parseJsonMessage(jsonBuffer)) {
       // Retrieve the JSON packet fields
       const char* mode = doc["mode"];
@@ -213,7 +252,8 @@ void loop() {
       }
       // perform an "init" operation
       else if (strcmp(mode, "init") == 0) {
-        if (strcmp(periph, "arduino") == 0) {sendAck();}
+        if (strcmp(periph, "arduino") == 0) {digitalWrite(LED_BUILTIN,1);sendAck();}
+        else if (strcmp(periph, "wifi") == 0) {digitalWrite(LED_BUILTIN,1);sendAck();}
         else if (strcmp(periph, "dinput") == 0) {pinMode(pin, INPUT_PULLUP); sendAck();} 
         else if (strcmp(periph, "ainput") == 0) {pinMode(pin, INPUT); sendAck();} 
         else if (strcmp(periph, "output") == 0) {pinMode(pin, OUTPUT); sendAck();}
@@ -230,5 +270,4 @@ void loop() {
       // Print an error message if parsing failed
         Serial.print("JSON parsing error");
     }
-  }
 }
