@@ -1,7 +1,7 @@
 clc 
 clear all
 
-startlist = serialportlist("available");
+startlist = serialportlist("available")
 input("Connect your Arduino via USB cable and then press enter\n");
 endlist = serialportlist("available");
 

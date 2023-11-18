@@ -125,11 +125,6 @@ classdef nanobot < handle
             value = obj.read('ultrasonic',0);
         end
 
-        % Method to take a reflectance sensor distance reading
-        function values = reflectanceRead(obj)
-            values = obj.read('reflectance',0);
-        end
-
         % Method to initialize a piezo buzzer
         function initPiezo(obj,tonepin)
             obj.init('piezo',tonepin)
@@ -145,8 +140,8 @@ classdef nanobot < handle
         end
 
         % TODO: Method to initialize the reflectance array
-        function initReflectance(obj)
-            obj.init('reflectance',0);
+        function initReflectance(obj,tonepin)
+            obj.init('reflectance',tonepin)
         end
 
         % TODO: Method to initialize the Hall effect board

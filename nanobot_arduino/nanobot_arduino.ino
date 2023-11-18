@@ -4,11 +4,17 @@
 #include <ArduinoMotorCarrier.h>
 #include <WiFiUdp.h>
 #include "udp_access_point.h"
+#include <QTRSensors.h>            // Click here to get the library: http://librarymanager/All#QTRSensors 
 
-int sendMode = 1; //0 for serial, 1 for wifi
+int sendMode = 0; //0 for serial, 1 for wifi
 
 // create the WiFi-UDP object
 udp_access_point * wifi;
+
+// Reflectance sensor setup variables
+QTRSensors qtr;
+const uint8_t SensorCount = 4;
+uint16_t sensorValues[SensorCount];
 
 const size_t JSON_BUFFER_SIZE = 128;
 char jsonBuffer[JSON_BUFFER_SIZE];
@@ -35,6 +41,20 @@ void performAnalogRead(int pin) {
 void performDigitalWrite(int pin, int value) {
   digitalWrite(pin, value);
   sendAck();
+}
+
+// Function to perform reflectance sensor read and generate JSON reply
+void performReflectanceRead(){
+  qtr.read(sensorValues);
+  StaticJsonDocument<JSON_BUFFER_SIZE> replyDoc;
+  replyDoc["one"] = sensorValues[0];
+  replyDoc["two"] = sensorValues[1];
+  replyDoc["three"] = sensorValues[2];
+  replyDoc["four"] = sensorValues[3]; 
+  char replyBuffer[JSON_BUFFER_SIZE];
+  size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
+  sendJson(replyBuffer,replySize);
+  
 }
 
 // Function to perform analogRead operation and generate JSON reply
@@ -95,12 +115,21 @@ void performEncoderRead(int pin){
 
 void performPiezoTone(int frequency, int duration) {
   if (tonePin < 255){ //Only do this if the piezo has been initialized
-//    tone(tonePin, frequency, duration);
+    tone(tonePin, frequency, duration);
     sendAck();
   }
   else {
     sendError(); 
   }
+}
+
+
+void initReflectance(){
+  qtr.setTypeRC();
+  const uint8_t SensorCount = 4;
+  qtr.setSensorPins((const uint8_t[]) {
+    12, 11, 10, 8
+  }, SensorCount);
 }
 
 void setMotor(int motor, int value) {
@@ -136,6 +165,25 @@ void setServo(int servo, int value) {
           break;
   }
   sendAck();
+}
+
+void piezoMotorSwitcher(int pin) {
+  int plusPin = 255;
+  int minusPin = 255;  
+  switch (pin) {
+    case 3:
+          plusPin = 3;
+          minusPin = 2;
+          break;
+    case 4:
+          plusPin = 5;
+          minusPin = 4;
+          break;
+  }
+  pinMode(plusPin, OUTPUT);
+  pinMode(minusPin, OUTPUT);
+  tonePin = plusPin;
+  digitalWrite(minusPin, LOW);
 }
 
 // Function to parse the JSON message
@@ -239,6 +287,7 @@ void executeCommand(String input) {
         else if (strcmp(periph, "accel") == 0){performAccelRead();}
         else if (strcmp(periph, "encoder") == 0){performEncoderRead(pin);}
         else if (strcmp(periph, "ultrasonic") == 0){performUltrasonicRead();}
+        else if (strcmp(periph, "reflectance") == 0){performReflectanceRead();}
         //else if (strcmp(periph, "reflectance") ==0){}
         //else if (strcmp(periph, "color") ==0){}
       }
@@ -261,8 +310,8 @@ void executeCommand(String input) {
           trigPin = pin; pinMode(trigPin, OUTPUT); 
           echoPin = value; pinMode(echoPin, INPUT); 
           sendAck();}
-        else if (strcmp(periph, "piezo") ==0) {tonePin = pin; pinMode(tonePin, OUTPUT); sendAck();}
-        //else if (strcmp(periph, "reflectance") ==0){}
+        else if (strcmp(periph, "piezo") ==0) {piezoMotorSwitcher(pin); sendAck();}
+        else if (strcmp(periph, "reflectance") ==0){initReflectance(); sendAck();}
         //else if (strcmp(periph, "color") ==0){}
        }
     }
