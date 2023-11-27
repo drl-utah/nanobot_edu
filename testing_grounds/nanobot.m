@@ -48,6 +48,7 @@ classdef nanobot < handle
                 configureCallback(obj.u, "datagram", 1, @obj.udpread);  
 
                 obj.init('wifi',0,0);
+                fprintf("Connection established...\n");
             end
         end
 
