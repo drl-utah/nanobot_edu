@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%
 % ECE 3610
-% LAB 1 -- Toolchain Intro 1 - Changing Colors of the Onboard LED
+% LAB 1 -- Toolchain Intro 1 - Blinking an Onboard LED
 %%%%%%%%%%%%%
 
 %%%%%%%%%%%%%
@@ -78,6 +78,6 @@ end
 %  disconnects from the nanobot, freeing up the serial port.
 
 clc
-clear all
-%delete(nb); % DEBUG: I think clear all already does this?
+delete(nb);
 clear('nb');
+clear all

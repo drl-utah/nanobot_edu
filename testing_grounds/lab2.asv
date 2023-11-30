@@ -134,11 +134,9 @@ fprintf('standard deviation = %.0f\n', stdDev)
 %  nanobot_demo.m, modify the code as necessary to select the correct pin
 %  for digital reading.
 %
-%  Now write code to turn on the onboard LED when the button is pressed.
-%
+%  Now write code to turn on the onboard LED when the button is pressed
 %  HINT: if you wrap an if statement in a while(true) loop, the condition
-%  will be checked continuously. You can also use tic and toc to have the
-%  loop run continuously for a finite period of time.
+%  will be checked continuously.
 
 % Solution:
 % First set the mode of desired pin to digital input 'dinput'
@@ -155,13 +153,11 @@ while(true)
         nb.ledWrite(0);
     end
 end
-%% 7. EXTENSION (optional)
-%  Try these following tasks if you're up to the challenge:
-% - Make the LED blink when the temperature increases about room
-% temperature, and go steady when it returns.
-% - Move the servo in 10-degree increments every time the pushbutton is
-% depressed. Return to home position when the temperature reading
-% increases.
+%% X. EXTENSION (optional)
+%  Brief text description of this section of code.
+%
+%  HINT: It can be helpful to provide hints like this, if necessary.
+
 
 %% X. DISCONNECT
 %  Clears the workspace and command window, then
