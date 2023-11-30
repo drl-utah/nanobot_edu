@@ -135,6 +135,18 @@ classdef nanobot < handle
             obj.write('rgb',red,green,'blue',blue);
         end
 
+        % Method to set PID setpoints
+        function setPID(obj,target1,target2)
+            obj.write('pid',target1,target2);
+        end
+
+        % Method to read from the RGB sensor
+        function values = colorRead(obj)
+            values = obj.read('rgb',0);
+        end
+
+
+
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % INITS
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,11 +170,19 @@ classdef nanobot < handle
             obj.init('pinmode',pin,mode)
         end
 
-        % Method to initialize the rgb led pins
+        % Method to initialize the offboard RGB led pins
         function initRGB(obj,redPin,greenPin,bluePin)
-            obj.init('rgb',redPin,greenPin,'bluePin',bluePin);
+            obj.init('rgb',redPin,greenPin,'bluePin',obj.convertPin(bluePin));
         end
 
+        function initPID(obj, p, i, d)
+            obj.init('pid',0,0,'p',p,'i',i,'d',d);
+        end
+
+        % Method to initialize the RGB color sensor
+        function initColor(obj)
+            obj.init('color',0,0);
+        end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % HELPER / COMM FUNCTIONS
@@ -175,12 +195,14 @@ classdef nanobot < handle
             jsonPacket.periph = periph;
             jsonPacket.pin = pin;
             jsonPacket.value = value;
-            
-            for k = 1:2:length(varargin)
-                if ischar(varargin{k})
-                    jsonPacket.(varargin{k}) = varargin{k+1};
-                else
-                    error('Optional argument names must be strings.');
+
+            if ~isempty(varargin)
+                for k = 1:2:length(varargin{1})
+                    if ischar(varargin{1}{k})
+                        jsonPacket.(varargin{1}{k}) = varargin{1}{k+1};
+                    else
+                        error('Optional argument names must be strings.');
+                    end
                 end
             end
 
@@ -287,7 +309,7 @@ classdef nanobot < handle
                         value.counts = jsonReply.count;
                         value.countspersec = jsonReply.countper;
                     else
-                        error('Invalid accelerometer values');
+                        error('Invalid encoder values');
                     end
                 case {'digital', 'analog', 'ultrasonic'}
                     % For 'digital', 'analog', and 'ultrasonic', we expect a 'value' field
@@ -303,9 +325,16 @@ classdef nanobot < handle
                         value.two = jsonReply.two;
                         value.three = jsonReply.three;
                         value.four = jsonReply.four;
-
                     else
                         error('Invalid accelerometer values');
+                    end
+                case 'rgb'
+                    if isfield(jsonReply, 'red') && isfield(jsonReply, 'green') && isfield(jsonReply, 'blue')
+                        value.red = jsonReply.red;
+                        value.green = jsonReply.green;
+                        value.blue = jsonReply.blue;
+                    else 
+                        error('Invalid rgb values')
                     end
                 otherwise
                     error('Invalid peripheral');
@@ -330,6 +359,8 @@ classdef nanobot < handle
                     obj.sendJSON('write', periph, pin, value);
                 case 'rgb'
                     obj.sendJSON('write', periph, pin, value, varargin);
+                case 'pid'
+                    obj.sendJSON('write', periph, pin, value);
             end
             obj.waitAck()
         end
@@ -354,7 +385,11 @@ classdef nanobot < handle
                 case 'reflectance'
                     obj.sendJSON('init',periph,0,0);
                 case 'rgb'
-                    obj.sendJSON('init',periph,0,0, varargin);
+                    pin = obj.convertPin(pin);
+                    value = obj.convertPin(value);
+                    obj.sendJSON('init',periph, pin, value, varargin);
+                case 'pid'
+                    obj.sendJSON('init',periph, 0, 0, varargin); 
             end
             obj.waitAck()
         end

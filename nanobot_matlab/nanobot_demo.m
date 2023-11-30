@@ -136,7 +136,7 @@ while (toc < 3)
     nb.ledWrite(0)
     pause(0.05)
 end
-nb.ledWrite(0)
+nb.ledWrite(1)
 
 %%
 % OFFBOARD RGB LED WRITE
@@ -188,10 +188,37 @@ val = nb.reflectanceRead;
 fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f\n', val.one, val.two, val.three, val.four);
 
 %%
+% PID
+
+%Initialize the PID controllers with some default values
+p = 0.007;
+i = 0.001;
+d = 0.001;
+nb.initPID(p,i,d);
+
+%Set a PID setpoint for motor1 and motor2
+nb.setPID(50,50);
+pause(1);
+nb.setPID(0,0);
+
+%%
+% RGB Sensor
+
+%Initialize the RGB color sensor
+nb.initColor();
+
+%Take a single RGB color sensor reading
+values = nb.colorRead();
+
+%The sensor values are saved as fields in a structure:
+red = values.red;
+green = values.green;
+blue = values.blue;
+fprintf('red: %.2f, green: %.2f, blue: %.2f\n', red, green, blue);
+%%
 % CLOSING OUT
 
 % Close and clear the nanobot instance; if you change the name from "nb",
 % make sure to update the clear() function here
 
-% delete(nb);
 clear('nb');

@@ -5,13 +5,16 @@
 #include <WiFiUdp.h>
 #include "udp_access_point.h"
 #include <QTRSensors.h>            // Click here to get the library: http://librarymanager/All#QTRSensors 
+#include "Adafruit_TCS34725.h"     // Click here to get the library: http://librarymanager/ALL#Adafruit_TCS34725
 
 //////// USER FLAGs /////////
-int sendMode = 1; //0 for serial, 1 for wifi
+int sendMode = 0; //0 for serial, 1 for wifi
 /////////////////////////////
 
 
 //Global variables
+float red, green, blue;
+
 // create the WiFi-UDP object
 udp_access_point * wifi;
 
@@ -20,8 +23,11 @@ QTRSensors qtr;
 const uint8_t SensorCount = 4;
 uint16_t sensorValues[SensorCount];
 
+//Create RGB Sensor
+Adafruit_TCS34725 rgbSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
+
 //JSON variables
-const size_t JSON_BUFFER_SIZE = 128;
+const size_t JSON_BUFFER_SIZE = 256;
 char jsonBuffer[JSON_BUFFER_SIZE];
 StaticJsonDocument<JSON_BUFFER_SIZE> doc;
 
@@ -39,6 +45,7 @@ void performDigitalRead(int pin);
 void performAnalogRead(int pin);
 void performDigitalWrite(int pin, int value);
 void performReflectanceRead();
+void performRGBRead();
 void performAccelRead();
 void performUltrasonicRead();
 void performEncoderRead(int pin);
@@ -46,11 +53,14 @@ void performPiezoTone(int frequency, int duration);
 void performRGBSet(int red, int green, int blue);
 //Peripheral inits
 void initReflectance();
+void initColor();
 void piezoMotorSwitcher(int pin);
 void initRGB(int redpin, int greenpin, int bluepin);
 //Motor drivers
 void setMotor(int motor, int value);
 void setServo(int servo, int value);
+void initPID(float p1, float i1, float d1, float p2, float i2, float d2);
+void setPID(int target1, int target2);
 //Helpers
 bool parseJsonMessage(const char* jsonMsg);
 void sendJsonValue(int val);
@@ -158,6 +168,18 @@ void performEncoderRead(int pin) {
   sendJson(replyBuffer, replySize);
 }
 
+void performRGBRead() {
+  rgbSensor.getRGB(&red, &green, &blue);
+  
+  StaticJsonDocument<JSON_BUFFER_SIZE> replyDoc;
+  replyDoc["red"] = int(red);
+  replyDoc["green"] = int(green);
+  replyDoc["blue"] = int(blue);
+  char replyBuffer[JSON_BUFFER_SIZE];
+  size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
+  sendJson(replyBuffer, replySize);
+}
+
 void performPiezoTone(int frequency, int duration) {
   if (tonePin < 255) { //Only do this if the piezo has been initialized
     tone(tonePin, frequency, duration);
@@ -184,7 +206,17 @@ void initRGB(int redpin, int greenpin, int bluepin) {
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
-  
+}
+
+void initPID(float p, float i, float d){
+  pid1.setGains(p, i, d);
+  pid2.setGains(p, i, d);
+  encoder1.resetCounter(0);
+  encoder2.resetCounter(0);
+}
+
+void initColor(){
+  rgbSensor.begin();
 }
 
 void setMotor(int motor, int value) {
@@ -219,6 +251,12 @@ void setServo(int servo, int value) {
       servo4.setAngle(value);
       break;
   }
+  sendAck();
+}
+
+void setPID(int target1, int target2) {
+  pid1.setSetpoint(TARGET_VELOCITY, target1);
+  pid2.setSetpoint(TARGET_VELOCITY, target2);
   sendAck();
 }
 
@@ -283,23 +321,35 @@ void sendJson(char replyBuffer[JSON_BUFFER_SIZE], size_t replySize) {
 }
 
 void setup() {
-
   pinMode(LED_BUILTIN, OUTPUT);
+  
+  // Initialize communications
+  Serial.begin(115200);
+  
+  // Check for IMU functionality
   if (!IMU.begin()) {
     Serial.println("Failed to initialize LSM6DS3!");
     while (1);
   }
+  
+  // Check for Motor Carrier
   if (!controller.begin()) {
     Serial.println("Failed to connect to Motor Carrier!");
     while (1);
   }
 
+  // Reboot and initialize all the motors
   controller.reboot();
   delay(500);
   encoder1.resetCounter(0);
   encoder2.resetCounter(0);
-
-  Serial.begin(115200);
+  int dutyInit = 0; 
+  M1.setDuty(dutyInit);
+  M2.setDuty(dutyInit);
+  M3.setDuty(dutyInit);
+  M4.setDuty(dutyInit);
+  pid1.setControlMode(CL_VELOCITY);
+  pid2.setControlMode(CL_VELOCITY);
 
   if (sendMode == 0) { //Only hang here if the arduino is for serial comm
     while (!Serial);
@@ -361,7 +411,6 @@ void executeCommand(String input) {
       else if (strcmp(periph, "reflectance") == 0) {
         performReflectanceRead();
       }
-
       //else if (strcmp(periph, "color") ==0){}
     }
     // perform a "write" operation
@@ -388,6 +437,9 @@ void executeCommand(String input) {
       else if (strcmp(periph, "rgb") == 0) {
         int blueval = doc["blue"];
         performRGBSet(pin,value,blueval);
+      }
+      else if (strcmp(periph, "pid") == 0) {
+        setPID(pin, value);
       }
       
       
@@ -432,7 +484,17 @@ void executeCommand(String input) {
         initRGB(pin, value, bluepin);
         sendAck();
       }
-      //else if (strcmp(periph, "color") ==0){}
+      else if (strcmp(periph, "pid") == 0) {
+        float p = doc["p"];
+        float i = doc["i"];
+        float d = doc["d"];
+        initPID(p,i,d);
+        sendAck();
+      }
+      else if (strcmp(periph, "color") == 0) {
+        initColor();
+        sendAck();
+      }     
     }
   }
   else {
