@@ -31,11 +31,23 @@ clear all
 nb = nanobot('COM7', 115200, 'wifi');
 
 %% 2. SET LED BLINK RATE
-% Set the onboard LED to blink at a rate of 5 Hz
+% Set the onboard LED to blink at a rate of 5 Hz. Replace the ??? marks
+% with appropriate values or variables.
 
-% HINT: Use frequency's relationship to period to determine cycle time
-% HINT: Remember to split the cycle time into on and off periods (think
-% duty cycle)
+% % Setup:
+% ledFreq = ???;
+% dtyCyc = ???; % have LED on for half the cycle period
+% cyclePeriod = 1/???;
+% onTime = ??? * ???;
+% offTime = ??? - ???;
+% 
+% tic
+% while(toc < ???)  % Choose how long you want the LED to blink for (in seconds)
+%     nb.ledWrite(???);
+%     pause(???);
+%     nb.ledWrite(???);
+%     pause(???);
+% end
 
 % Solution:
 % Setup:
@@ -46,8 +58,8 @@ onTime = cyclePeriod * dtyCyc;
 offTime = cyclePeriod - onTime;
 
 % Loop portion (easy loop)
-fprintf("Hit STOP to stop the infinite loop\n");
-while(1)
+tic
+while(toc < 5)
     nb.ledWrite(1);
     pause(onTime);
     nb.ledWrite(0);
