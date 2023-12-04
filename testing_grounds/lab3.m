@@ -32,7 +32,7 @@
 
 clc
 clear all
-nb = nanobot('COM7', 115200, 'wifi');
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. Building a voltage divider
 %  Using the blue potentiometer and the 10k resistor, build a voltage
