@@ -3,6 +3,8 @@
 % LAB 3 -- Analog Inputs and Variable resistances
 %%%%%%%%%%%%%
 
+% FIXME SWAP FLEX SENSOR FOR RGB BREAKOUT
+
 %%%%%%%%%%%%%
 % This lab will serve as a basic introduction to one of the most important
 % functions of a microcontroller: interfacing with external circuitry and
