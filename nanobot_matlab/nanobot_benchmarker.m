@@ -2,8 +2,8 @@ clc
 clear all
 
 % Create an instance of the nanobot class
-nb = nanobot('/dev/cu.usbmodem21101', 115200, 'wifi');
-
+nb = nanobot('/dev/cu.usbmodem24101', 115200, 'serial');
+%%
 % Set the number of iterations for the benchmark
 numIterations = 10;
 
