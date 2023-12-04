@@ -6,7 +6,7 @@
 #include "udp_access_point.h"
 #include <QTRSensors.h>            // Click here to get the library: http://librarymanager/All#QTRSensors 
 
-int sendMode = 1; //0 for serial, 1 for wifi
+int sendMode = 0; //0 for serial, 1 for wifi
 
 // create the WiFi-UDP object
 udp_access_point * wifi;
