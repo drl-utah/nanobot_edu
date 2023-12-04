@@ -16,12 +16,14 @@ udp_access_point::udp_access_point(int port, IPAddress ip) {
 
   // Sets the static IP
   WiFi.config(ip_add);
+ 
 
   status = WiFi.beginAP(SECRET_SSID, SECRET_PASS);
   if (status != WL_AP_LISTENING)
     setupStatus = false;
 
   udpConnection->begin(localPort);
+  WiFi.noLowPowerMode();
   setupStatus = true;
 }
 

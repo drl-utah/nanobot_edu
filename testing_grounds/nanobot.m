@@ -17,69 +17,58 @@ classdef nanobot < handle
     methods
         % Constructor
         function obj = nanobot(serialPort, baudRate, connectMode)
-            if connectMode == "serial"
-                % Find all open serial ports
-                warning('off','instrument:instrfind:FunctionToBeRemoved')
-                serialPorts = instrfind('Type', 'serial');
-                % Close all open serial ports
-                if ~isempty(serialPorts)
-                    fclose(serialPorts);
-                end
-                obj.serialPort = serialPort;
-                obj.baudRate = baudRate;
-                obj.sendMode = "serial";
-                obj.arduino = serialport(serialPort, baudRate);
-                fopen(obj.arduino);
-                pause(1);
-                obj.init('arduino',0,0)
-                if isvalid(obj.arduino)
-                    disp('Connection established')
-                else
-                    disp('Failed to establish connection')
-                end
-            elseif connectMode == "wifi"
-                obj.robotIP = "192.168.1.100";
-                obj.robotPORT = 551;
-                obj.sizeofBuffer = 250;
-                obj.ready = 0;
-                obj.sendMode = "wifi";
-                obj.u = udpport("datagram");
-                flush(obj.u, "input");
-                configureCallback(obj.u, "datagram", 1, @obj.udpread);  
-
-                obj.init('wifi',0,0);
-                fprintf("Connection established...\n");
-            end
-        end
-
-        function udpread(obj, varargin)
-            % READ  is a callback function designed to be called whenever
-            % there is a datagram available in the UDP buffer. This
-            % function handles the message appropriately, and never needs
-            % to be called by the user
-            try
-                % Read data and update status
-                datagramCount = obj.u.NumDatagramsAvailable;
-                uDatagram = read(obj.u, datagramCount);
-            catch
-                disp('UDP Error!');
-            end
-            obj.ready = 1;
-            obj.wifiData = char(uDatagram.Data);
+                if connectMode == "serial"
+                    % Find all open serial ports
+                    warning('off','instrument:instrfind:FunctionToBeRemoved')
+                    serialPorts = instrfind('Type', 'serial');
+                    % Close all open serial ports
+                    if ~isempty(serialPorts)
+                        fclose(serialPorts);
+                    end
+                    obj.serialPort = serialPort;
+                    obj.baudRate = baudRate;
+                    obj.sendMode = "serial";
+                    try
+                        obj.arduino = serialport(serialPort, baudRate);
+                        fopen(obj.arduino);
+                        pause(1);
+                        obj.init('arduino',0,0)
+                    catch
+                        disp('Error: unable to open serial connection!')
+                        return
+                    end
+                elseif connectMode == "wifi"
+                    obj.robotIP = "192.168.1.100";
+                    obj.robotPORT = 551;
+                    obj.sizeofBuffer = 250;
+                    obj.ready = 0;
+                    obj.sendMode = "wifi";
+                    obj.u = udpport("datagram");
+                    flush(obj.u, "input");
+                    configureCallback(obj.u, "datagram", 1, @obj.udpread);  
+                    obj.init('wifi',0,0);
+               end
         end
 
         % Destructor
         function delete(obj)
-            if obj.sendMode == "serial"
-                warning('off','transportlib:legacy:DoesNotCloseConnection')
-                fclose(obj.arduino);
-                delete(obj.arduino);
-            elseif obj.sendMode == "wifi"
-                flush(obj.u, "input");
-                clear obj.u
+            try
+                if obj.sendMode == "serial"
+                    warning('off','transportlib:legacy:DoesNotCloseConnection')
+                    fclose(obj.arduino);
+                    delete(obj.arduino);
+                elseif obj.sendMode == "wifi"
+                    flush(obj.u, "input");
+                    clear obj.u
+                end
+            catch
+             
             end
         end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PERIPHERAL INTERFACE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Method to perform digitalRead operation
         function value = digitalRead(obj, pin)
@@ -101,6 +90,11 @@ classdef nanobot < handle
             obj.write('motor', pin, value);
         end
 
+        % Method to set both motor values, pin is motor1 value is motor2
+        function setMotors(obj, pin, value)
+            obj.write('motors', pin, value);
+        end
+
         % Method to set a servo angle
         function setServo(obj, pin, value)
             obj.write('servo', pin, value);
@@ -116,11 +110,6 @@ classdef nanobot < handle
             obj.write('led', 0, value);
         end
 
-        % Method to initialize the ultrasonic rangefinder
-        function initUltrasonic(obj,trigpin,echopin)
-            obj.init('ultrasonic',trigpin,echopin)
-        end
-
         % Method to take an ultrasonic distance reading
         function value = ultrasonicRead(obj)
             value = obj.read('ultrasonic',0);
@@ -131,53 +120,91 @@ classdef nanobot < handle
             values = obj.read('reflectance',0);
         end
 
-        % Method to initialize a piezo buzzer
-        function initPiezo(obj,tonepin)
-            obj.init('piezo',tonepin)
-        end
-
         % Method to send a piezo tone
         function setPiezo(obj,frequency, duration)
             obj.write('piezo',frequency,duration)
         end
 
+        % Method to read from a wheel encoder
         function values = encoderRead(obj, num)
             values = obj.read('encoder',num);
         end
+        
+        % Method to write to the rgb led
+        function setRGB(obj,red,green,blue)
+            obj.write('rgb',red,green,'blue',blue);
+        end
 
-        % TODO: Method to initialize the reflectance array
+        % Method to set PID setpoints
+        function setPID(obj,target1,target2)
+            obj.write('pid',target1,target2);
+        end
+
+        % Method to read from the RGB sensor
+        function values = colorRead(obj)
+            values = obj.read('rgb',0);
+        end
+
+
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % INITS
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Method to initialize the ultrasonic rangefinder
+        function initUltrasonic(obj,trigpin,echopin)
+            obj.init('ultrasonic',trigpin,echopin)
+        end
+
+        % Method to initialize a piezo buzzer
+        function initPiezo(obj,tonepin)
+            obj.init('piezo',tonepin)
+        end
+
+        % Method to initialize the reflectance array
         function initReflectance(obj)
             obj.init('reflectance',0);
         end
-
-        % TODO: Method to initialize the Hall effect board
-
-
-
-        % TODO: Method to initialize the color sensor
-
-
-        % TODO: Method to read from the reflectance array
-
-
-        % TODO: Method to read from the Hall effect board
-
-
-        % TODO: Method to read from the reflectance array
 
         % Method to set pin modes on the Arduino
         function pinMode(obj, pin, mode)
             obj.init('pinmode',pin,mode)
         end
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Method to initialize the offboard RGB led pins
+        function initRGB(obj,redPin,greenPin,bluePin)
+            obj.init('rgb',redPin,greenPin,'bluePin',obj.convertPin(bluePin));
+        end
+
+        function initPID(obj, p, i, d)
+            obj.init('pid',0,0,'p',p,'i',i,'d',d);
+        end
+
+        % Method to initialize the RGB color sensor
+        function initColor(obj)
+            obj.init('color',0,0);
+        end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HELPER / COMM FUNCTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
         % Method to send JSON packet
-        function sendJSON(obj, mode, periph, pin, value)
+        function sendJSON(obj, mode, periph, pin, value, varargin)
             % Create a struct for the JSON packet
             jsonPacket.mode = mode;
             jsonPacket.periph = periph;
             jsonPacket.pin = pin;
             jsonPacket.value = value;
+
+            if ~isempty(varargin)
+                for k = 1:2:length(varargin{1})
+                    if ischar(varargin{1}{k})
+                        jsonPacket.(varargin{1}{k}) = varargin{1}{k+1};
+                    else
+                        error('Optional argument names must be strings.');
+                    end
+                end
+            end
 
             % Convert struct to JSON string
             jsonString = jsonencode(jsonPacket);
@@ -195,12 +222,21 @@ classdef nanobot < handle
                 jsonString = fgetl(obj.arduino);
                 jsonReply = jsondecode(jsonString);
             elseif obj.sendMode == "wifi"
-                while obj.ready == 0
-                    pause(0.010);
+                timeout = 0;
+                timeoutMax = 100;
+                while obj.ready == 0 && timeout < timeoutMax
+                    pause(0.005);
+                    timeout = timeout+1;
                 end
-                jsonString = obj.wifiData;
-                jsonReply = jsondecode(jsonString);
-                obj.ready = 0;
+                if timeout < timeoutMax
+                    jsonString = obj.wifiData;
+                    jsonReply = jsondecode(jsonString);
+                    obj.ready = 0;
+                else
+                    disp("(error receiving WiFi packet)")
+                    jsonReply = "";
+                end
+                timeout = 0;
             end
         end
 
@@ -210,6 +246,22 @@ classdef nanobot < handle
             % rather by this class to streamline communication.
             
             write(obj.u, dataString, obj.robotIP, obj.robotPORT); %Sends the data over UDP
+        end
+
+        function udpread(obj, varargin)
+            % UDPREAD  is a callback function designed to be called whenever
+            % there is a datagram available in the UDP buffer. This
+            % function handles the message appropriately, and never needs
+            % to be called by the user
+            try
+                % Read data and update status
+                datagramCount = obj.u.NumDatagramsAvailable;
+                uDatagram = read(obj.u, datagramCount);
+            catch
+                disp('UDP Error!');
+            end
+            obj.ready = 1;
+            obj.wifiData = char(uDatagram.Data);
         end
 
 
@@ -230,6 +282,9 @@ classdef nanobot < handle
             end
         end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HIGH LEVEL I/O
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Method to perform read operation
         function value = read(obj, periph, pin)
             pinNum = obj.convertPin(pin);
@@ -254,7 +309,7 @@ classdef nanobot < handle
                         value.counts = jsonReply.count;
                         value.countspersec = jsonReply.countper;
                     else
-                        error('Invalid accelerometer values');
+                        error('Invalid encoder values');
                     end
                 case {'digital', 'analog', 'ultrasonic'}
                     % For 'digital', 'analog', and 'ultrasonic', we expect a 'value' field
@@ -270,9 +325,16 @@ classdef nanobot < handle
                         value.two = jsonReply.two;
                         value.three = jsonReply.three;
                         value.four = jsonReply.four;
-
                     else
                         error('Invalid accelerometer values');
+                    end
+                case 'rgb'
+                    if isfield(jsonReply, 'red') && isfield(jsonReply, 'green') && isfield(jsonReply, 'blue')
+                        value.red = jsonReply.red;
+                        value.green = jsonReply.green;
+                        value.blue = jsonReply.blue;
+                    else 
+                        error('Invalid rgb values')
                     end
                 otherwise
                     error('Invalid peripheral');
@@ -280,7 +342,7 @@ classdef nanobot < handle
         end
 
         % Method to perform write operation
-        function write(obj, periph, pin, value)
+        function write(obj, periph, pin, value, varargin)
             switch periph
                 case 'digital'
                     pinNum = obj.convertPin(pin);
@@ -291,14 +353,20 @@ classdef nanobot < handle
                     obj.sendJSON('write', periph, pin, value);
                 case 'motor'
                     obj.sendJSON('write', periph, pin, value);
+                case 'motors'
+                    obj.sendJSON('write', periph, pin, value);
                 case 'servo'
+                    obj.sendJSON('write', periph, pin, value);
+                case 'rgb'
+                    obj.sendJSON('write', periph, pin, value, varargin);
+                case 'pid'
                     obj.sendJSON('write', periph, pin, value);
             end
             obj.waitAck()
         end
 
         % Method to perform init operation
-        function init(obj, periph, pin, value)
+        function init(obj, periph, pin, value, varargin)
             switch periph
                 case 'arduino'
                     obj.sendJSON('init',periph,0,0);
@@ -316,6 +384,12 @@ classdef nanobot < handle
                     obj.sendJSON('init',periph,0,0);
                 case 'reflectance'
                     obj.sendJSON('init',periph,0,0);
+                case 'rgb'
+                    pin = obj.convertPin(pin);
+                    value = obj.convertPin(value);
+                    obj.sendJSON('init',periph, pin, value, varargin);
+                case 'pid'
+                    obj.sendJSON('init',periph, 0, 0, varargin); 
             end
             obj.waitAck()
         end
