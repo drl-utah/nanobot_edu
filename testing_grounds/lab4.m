@@ -94,7 +94,7 @@ end
 msCount = 0;
 while(true)
     if(nb.analogRead(1) > 100)
-        while(r.analogRead(1) < 800)
+        while(nb.analogRead(1) < 800)
             pause(0.001);
             msCount = msCount + 1;
         end
@@ -184,7 +184,7 @@ nb.setRGB(0, 0, 0);
 % - Think of fun variations on this game using any components you have on
 %   hand
 
-%% X. DISCONNECT
+%% 7. DISCONNECT
 %  Clears the workspace and command window, then
 %  disconnects from the nanobot, freeing up the serial port.
 
