@@ -13,6 +13,7 @@ nb = nanobot('/dev/cu.usbmodem21401', 115200, 'serial');
 
 %Valid ANALOG pins with motor carrier installed: A2, A3, A6, A7
 %Valid DIGITAL pins with motor carrier installed: D12, D11, D10, D8, D7
+    %D5, D4, D3, D2 are M4+/-, M3+/-: you can use these for the project
 
 %Refer to the Arduino Nano 33 IoT PINOUT in order to find these. 
 
