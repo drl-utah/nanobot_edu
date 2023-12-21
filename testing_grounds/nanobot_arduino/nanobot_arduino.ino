@@ -332,24 +332,21 @@ void setup() {
     while (1);
   }
   
-  // Check for Motor Carrier
-  if (!controller.begin()) {
-    Serial.println("Failed to connect to Motor Carrier!");
-    while (1);
-  }
+//  // Check for Motor Carrier
+//  if (!controller.begin()) {
+//    Serial.println("Failed to connect to Motor Carrier!");
+//    while (1);
+//  }
 
   // Reboot and initialize all the motors
   controller.reboot();
   delay(500);
   encoder1.resetCounter(0);
   encoder2.resetCounter(0);
-  int dutyInit = 0; 
-  M1.setDuty(dutyInit);
-  M2.setDuty(dutyInit);
-  M3.setDuty(dutyInit);
-  M4.setDuty(dutyInit);
-  pid1.setControlMode(CL_VELOCITY);
-  pid2.setControlMode(CL_VELOCITY);
+  M1.setDuty(0);
+  M2.setDuty(0);
+  M3.setDuty(0);
+  M4.setDuty(0);
 
   if (sendMode == 0) { //Only hang here if the arduino is for serial comm
     while (!Serial);
