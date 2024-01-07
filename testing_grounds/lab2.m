@@ -35,7 +35,7 @@
 
 clc
 clear all
-nb = nanobot('COM7', 115200, 'wifi');
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. Connecting and running the DC motor
 %  First, locate where the Motor 1 output slots are on your carrier board.
@@ -46,6 +46,13 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  There is an ON/OFF switch on your carrier board that enables the separate
 %  battery pack to drive the motors. Set the switch to the ON position so we
 %  can supply power to the motors.
+%
+%  Is is VERY IMPORTANT that we use the motor carrier and battery to drive
+%  the motors. The Arduino can only output a very small amount of current
+%  through its pins, so we want the motor carrier to do the heavy lifting
+%  while the Arduino supplies the control signal. Using the Arduino itself
+%  to power the motor could potentially damage your board and render it
+%  nonfunctional.
 %
 %  Next, we want to drive the motor. Find the appropriate code in
 %  nanobot_demo.m to make our DC motor move and copy it here:
