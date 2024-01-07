@@ -8,8 +8,8 @@
 % a clear way to draw a connection between code you write and a physical,
 % visible output. 
 %
-% Follow the detailed lab instructions on Canvas to write a program that
-% connects to your "nanobot," then blinks the onboard LED at 5Hz with a 
+% Follow the lab instructions on Canvas to write a program that
+% connects to your Arduino Nano, then blinks the onboard LED at 5Hz with a 
 % 50% duty cycle for 3 seconds. For an optional challenge, you can make the
 % LED blink out "Hello World" in Morse code. 
 %%%%%%%%%%%%%%
@@ -31,16 +31,16 @@
 
 clc
 clear all
-nb = nanobot('/dev/cu.usbmodem21101', 115200);
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. CALCULATE YOUR LED PARAMETERS
 %  First calculate some of the important values for this program using the
 %  desired behavior.
 
 % These are variables you can choose:
-blinkTime = 3; %time in seconds for the blink program to run
-blinkFrequency = 2;  %frequency that LED blinks in Hz
-dutyCycle = 0.5; %duty cycle of the LED in decimal form (e.g., 20% is 0.2)
+blinkTime = ?; %time in seconds for the blink program to run
+blinkFrequency = ?;  %frequency that LED blinks in Hz
+dutyCycle = ?; %duty cycle of the LED in decimal form (e.g., 20% is 0.2)
 
 % These are variables which should be calculated:
 blinkPeriod = 1/blinkFrequency;
@@ -53,9 +53,9 @@ offTime = blinkPeriod - onTime;
 
 tic
 while (toc < blinkTime)
-    nb.ledWrite(1)
+    nb.ledWrite(?)
     pause(onTime)
-    nb.ledWrite(0)
+    nb.ledWrite(?)
     pause(offTime)
 end
 nb.ledWrite(0)
@@ -72,11 +72,11 @@ nb.ledWrite(0)
 %  Morse code for each letter in each word, then iterate through the matrix. 
 %  I provided most of the code for this first extension for you below.
 
-unitTime = 0.1; 
+unitTime = ?; 
 words = 2;
 
 %  Fill in the corresponding code for "WORLD" yourself:
-letters = ["....",".",".-..",".-..","---"; ".--","---",".-.",".-..","-.."]; 
+letters = ["....",".",".-..",".-..","---"; ?,?,?,?,?]; 
 
 %  HINT: The trickiest part of this code is getting the integer multiples of
 %  "unitTime" correct for the pauses after each part of the letter, each
@@ -93,16 +93,16 @@ for i = 1:words
                 pause(unitTime)
             elseif letter{1}(z) == '-'
                 nb.ledWrite(1)
-                pause(3*unitTime)
+                pause(? * unitTime)
             end
             nb.ledWrite(0)
-            pause(unitTime)
+            pause(? * unitTime)
         end
         nb.ledWrite(0)
-        pause(2*unitTime)
+        pause(? * unitTime)
     end
     nb.ledWrite(0)
-    pause(4*unitTime)
+    pause(? * unitTime)
 end
 
 %% 5. DISCONNECT
@@ -110,6 +110,6 @@ end
 %  disconnects from the nanobot, freeing up the serial port.
 
 clc
-clear all
 delete(nb);
 clear('nb');
+clear all
