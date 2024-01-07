@@ -3,8 +3,6 @@
 % LAB 2 -- Toolchain Intro 2 -- Experimenting with Other Peripherals
 %%%%%%%%%%%%%
 
-% FIXME ADD BEST BATTERY PRACTICES & SAFETY
-
 %%%%%%%%%%%%%
 % In this lab, we will be learning how to connect external components to
 % our microcontroller, such as buttons, sensors, and motors. We will also
