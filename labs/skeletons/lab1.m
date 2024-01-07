@@ -8,8 +8,8 @@
 % a clear way to draw a connection between code you write and a physical,
 % visible output. 
 %
-% Follow the detailed lab instructions on Canvas to write a program that
-% connects to your "nanobot," then blinks the onboard LED at 5Hz with a 
+% Follow the lab instructions on Canvas to write a program that
+% connects to your Arduino Nano, then blinks the onboard LED at 5Hz with a 
 % 50% duty cycle for 3 seconds. For an optional challenge, you can make the
 % LED blink out "Hello World" in Morse code. 
 %%%%%%%%%%%%%%
@@ -31,21 +31,21 @@
 
 clc
 clear all
-nb = nanobot('/dev/cu.usbmodem21101', 115200);
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. CALCULATE YOUR LED PARAMETERS
 %  First calculate some of the important values for this program using the
 %  desired behavior.
 
 % These are variables you can choose:
-blinkTime = ; %time in seconds for the blink program to run
-blinkFrequency = ;  %frequency that LED blinks in Hz
-dutyCycle = ; %duty cycle of the LED in decimal form (e.g., 20% is 0.2)
+blinkTime = ?; %time in seconds for the blink program to run
+blinkFrequency = ?;  %frequency that LED blinks in Hz
+dutyCycle = ?; %duty cycle of the LED in decimal form (e.g., 20% is 0.2)
 
 % These are variables which should be calculated:
-blinkPeriod = ;
-onTime = ;
-offTime = ; 
+blinkPeriod = 1/blinkFrequency;
+onTime = blinkPeriod * dutyCycle;
+offTime = blinkPeriod - onTime; 
 
 %% 3. STEADY BLINK YOUR LED 
 %  Use the calculated parameters from the previous section to blink your
@@ -53,10 +53,10 @@ offTime = ;
 
 tic
 while (toc < blinkTime)
-    nb.ledWrite(1)
-    pause( )               % How long should the LED stay on?
-    nb.ledWrite(0)
-    pause( )               % How long should the LED stay off?
+    nb.ledWrite(?)
+    pause(onTime)
+    nb.ledWrite(?)
+    pause(offTime)
 end
 nb.ledWrite(0)
 
@@ -72,11 +72,11 @@ nb.ledWrite(0)
 %  Morse code for each letter in each word, then iterate through the matrix. 
 %  I provided most of the code for this first extension for you below.
 
-unitTime = ; 
+unitTime = ?; 
 words = 2;
 
 %  Fill in the corresponding code for "WORLD" yourself:
-letters = ["....",".",".-..",".-..","---"; W O R L D]; 
+letters = ["....",".",".-..",".-..","---"; ?,?,?,?,?]; 
 
 %  HINT: The trickiest part of this code is getting the integer multiples of
 %  "unitTime" correct for the pauses after each part of the letter, each
@@ -93,16 +93,16 @@ for i = 1:words
                 pause(unitTime)
             elseif letter{1}(z) == '-'
                 nb.ledWrite(1)
-                pause(x * unitTime)          % ?
+                pause(? * unitTime)
             end
             nb.ledWrite(0)
-            pause(x * unitTime)              % ?
+            pause(? * unitTime)
         end
         nb.ledWrite(0)
-        pause(x * unitTime)                  % ?
+        pause(? * unitTime)
     end
     nb.ledWrite(0)
-    pause(x * unitTime)                      % ?
+    pause(? * unitTime)
 end
 
 %% 5. DISCONNECT
@@ -110,6 +110,6 @@ end
 %  disconnects from the nanobot, freeing up the serial port.
 
 clc
-clear all
 delete(nb);
 clear('nb');
+clear all

@@ -8,8 +8,8 @@
 % a clear way to draw a connection between code you write and a physical,
 % visible output. 
 %
-% Follow the detailed lab instructions on Canvas to write a program that
-% connects to your "nanobot," then blinks the onboard LED at 5Hz with a 
+% Follow the lab instructions on Canvas to write a program that
+% connects to your Arduino Nano, then blinks the onboard LED at 5Hz with a 
 % 50% duty cycle for 3 seconds. For an optional challenge, you can make the
 % LED blink out "Hello World" in Morse code. 
 %%%%%%%%%%%%%%
@@ -33,7 +33,7 @@ clc
 clear all
 % DEBUG: check for serial vs wifi selection, and check that the port is
 % correct
-nb = nanobot('COM7', 115200, 'wifi');
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. CALCULATE YOUR LED PARAMETERS
 %  First calculate some of the important values for this program using the
