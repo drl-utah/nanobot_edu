@@ -27,13 +27,13 @@
 
 %% 1. CONNECT TO YOUR NANOBOT
 %  Remember to replace the first input argument with text corresponding to
-%  the correct serial port you found through the Arduino IDE. Note that the
+%  the correct serial port you found through the Arduino IDE or port_detector.m. Note that the
 %  clc and clear all will clear your command window and all saved
 %  variables!
 
 clc
 clear all
-nb = nanobot('COM7', 115200, 'wifi');
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. Connecting and running the DC motor
 %  First, locate where the Motor 1 output slots are on your carrier board.

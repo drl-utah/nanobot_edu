@@ -25,7 +25,7 @@
 
 %% 1. CONNECT TO YOUR NANOBOT
 %  Remember to replace the first input argument with text corresponding to
-%  the correct serial port you found through the Arduino IDE. Note that the
+%  the correct serial port you found through the Arduino IDE or port_detector.m. Note that the
 %  clc and clear all will clear your command window and all saved
 %  variables!
 
