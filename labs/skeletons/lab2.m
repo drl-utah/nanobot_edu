@@ -3,8 +3,6 @@
 % LAB 2 -- Toolchain Intro 2 -- Experimenting with Other Peripherals
 %%%%%%%%%%%%%
 
-% FIXME ADD BEST BATTERY PRACTICES & SAFETY
-
 %%%%%%%%%%%%%
 % In this lab, we will be learning how to connect external components to
 % our microcontroller, such as buttons, sensors, and motors. We will also
@@ -126,21 +124,9 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  will be checked continuously. You can also use tic and toc to have the
 %  loop run continuously for a finite period of time.
 
-% Solution:
-% First set the mode of desired pin to digital input 'dinput'
-    %fyi: dinput is INPUT_PULLUP, so will return 1 by default
-nb.pinMode('D10','dinput');
 
-while(true)
-    %Here is an example of taking a single reading:
-    val = nb.digitalRead('D10');
 
-    if(val == 0)
-        nb.ledWrite(1);
-    else
-        nb.ledWrite(0);
-    end
-end
+
 %% 7. EXTENSION (optional)
 %  Try these following tasks if you're up to the challenge:
 % - Make the LED blink when the temperature increases about room

@@ -3,8 +3,6 @@
 % LAB 2 -- Toolchain Intro 2 -- Experimenting with Other Peripherals
 %%%%%%%%%%%%%
 
-% FIXME ADD BEST BATTERY PRACTICES & SAFETY
-
 %%%%%%%%%%%%%
 % In this lab, we will be learning how to connect external components to
 % our microcontroller, such as buttons, sensors, and motors. We will also
@@ -35,7 +33,7 @@
 
 clc
 clear all
-nb = nanobot('COM7', 115200, 'wifi');
+nb = nanobot('COM7', 115200, 'serial');
 
 %% 2. Connecting and running the DC motor
 %  First, locate where the Motor 1 output slots are on your carrier board.
@@ -57,8 +55,11 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  Next, we want to drive the motor. Find the appropriate code in
 %  nanobot_demo.m to make our DC motor move and copy it here:
 
-
-
+%  Solution:
+% Set the motor with NUM, DUTY CYCLE (-100:100)
+nb.setMotor(1,25)
+pause(1)
+nb.setMotor(1,0)
 
 %% 3. Connecting and running the servo motor
 %  Similarly to the DC motor hookup, locate the servo 1 output pins. Note,
@@ -73,8 +74,15 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  our servo motor move. Remember to set the power switch on the carrier to
 %  ON if not already set there.
 
-
-
+% Solution:
+%Set the servo with NUM, ANGLE (0:180)
+angle = 0;
+while (angle <= 180)
+    nb.setServo(1,angle)
+    angle = angle+20;
+    pause(0.25)
+end
+clear angle
 
 %% 4. Analog temperature sensing with the TMP36
 %  For this part, you will need your breadboard and a TMP36 temperature
@@ -101,8 +109,12 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  much. When you let it go, it should eventually return to its starting
 %  value.
 
-
-
+% Solution:
+% FIXME: Temp signal appears to fluctuate quite a bit, is that normal?
+% You can also plot an analog read value. Note that I have to initialize the pin as an analog input ("ainput")
+% first:
+nb.pinMode('A1','ainput');
+nb.livePlot('analog','A1');
 
 %% 5. Gathering data and statistics
 %  For this section, find the appropriate section of code from
@@ -110,8 +122,17 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  data. Modify this code to find the mean value and standard deviation of 
 %  the data and report it in the command window.
 
-
-
+% Solution:
+% Here is an example of taking a second of readings, then averaging:
+tic
+vals = [];
+while (toc < 1)
+    vals(length(vals)+1) = nb.analogRead('A1');
+end
+meanval = mean(vals);
+stdDev = std(vals);
+fprintf('mean val = %.0f\n', meanval)
+fprintf('standard deviation = %.0f\n', stdDev)
 
 %% 6. Reading digital values with a pushbutton
 %  Grab your pushbutton and place it into the breadboard so that its pins
@@ -126,9 +147,21 @@ nb = nanobot('COM7', 115200, 'wifi');
 %  will be checked continuously. You can also use tic and toc to have the
 %  loop run continuously for a finite period of time.
 
+% Solution:
+% First set the mode of desired pin to digital input 'dinput'
+    %fyi: dinput is INPUT_PULLUP, so will return 1 by default
+nb.pinMode('D10','dinput');
 
+while(true)
+    %Here is an example of taking a single reading:
+    val = nb.digitalRead('D10');
 
-
+    if(val == 0)
+        nb.ledWrite(1);
+    else
+        nb.ledWrite(0);
+    end
+end
 %% 7. EXTENSION (optional)
 %  Try these following tasks if you're up to the challenge:
 % - Make the LED blink when the temperature increases about room
