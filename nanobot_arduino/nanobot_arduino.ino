@@ -408,7 +408,9 @@ void executeCommand(String input) {
       else if (strcmp(periph, "reflectance") == 0) {
         performReflectanceRead();
       }
-      //else if (strcmp(periph, "color") ==0){}
+      else if (strcmp(periph, "color") ==0){
+        performRGBRead();
+      }
     }
     // perform a "write" operation
     else if (strcmp(mode, "write") == 0) {

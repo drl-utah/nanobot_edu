@@ -142,7 +142,7 @@ classdef nanobot < handle
 
         % Method to read from the RGB sensor
         function values = colorRead(obj)
-            values = obj.read('rgb',0);
+            values = obj.read('color',0);
         end
 
 
@@ -328,7 +328,7 @@ classdef nanobot < handle
                     else
                         error('Invalid accelerometer values');
                     end
-                case 'rgb'
+                case 'color'
                     if isfield(jsonReply, 'red') && isfield(jsonReply, 'green') && isfield(jsonReply, 'blue')
                         value.red = jsonReply.red;
                         value.green = jsonReply.green;
@@ -383,6 +383,8 @@ classdef nanobot < handle
                 case 'wifi'
                     obj.sendJSON('init',periph,0,0);
                 case 'reflectance'
+                    obj.sendJSON('init',periph,0,0);
+                case 'color'
                     obj.sendJSON('init',periph,0,0);
                 case 'rgb'
                     pin = obj.convertPin(pin);
