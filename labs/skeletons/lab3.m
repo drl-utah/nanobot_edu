@@ -30,7 +30,7 @@
 
 clc
 clear all
-nb = nanobot('COM47', 115200, 'serial');
+nb = nanobot('COMX', 115200, 'serial');
 
 %% 2. Building a voltage divider
 %  Using the blue potentiometer and the 10k resistor, build a voltage
@@ -43,7 +43,6 @@ nb = nanobot('COM47', 115200, 'serial');
 %  average 10 samples of the input to get the average analog value
 %  recorded.
 
-% Solution:
 nb.pinMode('A1', 'ainput'); % Set the analog pin to read analog input
 % Here is an example of taking 10 readings, then averaging:
 numreads = 10;
@@ -64,9 +63,10 @@ fprintf('mean val = %.0f\n', meanval);
 %  HINT: The equation for a voltage divider can be expressed as:
 %   Vout = Vin * (R2 / (R1 + R2))
 
-% Solution:
-aVolt = (meanval / 1023) * 3.3;
-r2 = (aVolt / (3.3 - aVolt)) * 10; % R2 = (Vout / (Vin - Vout)) * R1
+% Calculate the analog voltage from the ADC formula:
+aVolt = '?';
+% Now use the voltage divider equation to find the resistance:
+r2 = '?'; % R2 = (Vout / (Vin - Vout)) * R1
 fprintf('Total Pot Resistance = %f\n', r2);
 
 %% 4. Exploring potentiometers
@@ -94,10 +94,10 @@ while(true)
         vals(i) = nb.analogRead('A1');
     end
     meanval = mean(vals);
-    potVolt = (meanval / 1023) * 3.3;
+    potVolt = '?';
     fprintf('Pot voltage = %f V\n', potVolt);
-    while(toc < 0.5)
-        pause(0.01);
+    while(toc < '?') % What period in seconds corresponds 2 Hz? 
+        pause(0.01); % Do nothing slowly until time to re-print
     end
 end
 
@@ -107,10 +107,6 @@ end
 %  values and the value of the known 10k resistor to solve for R1 and R2
 %  when the potentiometer is turned fully in both directions. Think about
 %  what that means a potentiometer does!
-
-% Solution: (assuming I understand)
-% maxV = 1.69; R1 ~ 0 here and R2 ~ 10k
-% minV = 0.005; R1 ~ 10k here and R2 ~ 0
 
 %% 7. Using a flex sensor
 %  Make a voltage divider circuit on your breadboard using the flex sensor
@@ -122,7 +118,6 @@ end
 %  the flex sensor. Note, only the striped portion of the sensor matters
 %  when bending
 
-% Solution:
 nb.pinMode('A1', 'ainput');
 nb.livePlot('analog', 'A1');
 
@@ -131,7 +126,7 @@ nb.livePlot('analog', 'A1');
 %  of the sensor when it is bent 45 degrees.
 
 % Solution:
-bentV = (560 / 1023) * 3.3;
+bentV = ('?' / 1023) * 3.3;
 bentR = (bentV / (3.3 - bentV)) * 10;
 fprintf('Approximate resistance of flex sensor at 45 degrees is: %f kOhms\n', bentR);
 
@@ -159,10 +154,10 @@ nb.initRGB('D12','D11','D10'); % Initialize the RGB
 % nb.livePlot('analog', 'A2');
 
 % Record your max and min ADC values for each sensor:
-flexMax = 675;
-flexMin = 465;
-potMax = 1023;
-potMin = 0;
+flexMax = '?';
+flexMin = '?';
+potMax = '?';
+potMin = '?';
 
 % Let's start our loop:
 tic
@@ -171,7 +166,7 @@ while toc < 30
     % LED ranges have a minimum value of zero, we can scale the brightness
     % using a ratio of current reading over the max value.
     potVal = nb.analogRead('A2');
-    bright = potVal / potMax;
+    bright = '?'; % ratio of the pot ADC reading over the max pot ADC value
 
     % Now we normalize the current flex reading to a range between 0 and
     % 255. Let's compare ratios (in this case, read reflects our ADC, and
@@ -184,14 +179,14 @@ while toc < 30
     % value is within the range we declared in order for our linear
     % interpolation to work.
     flexVal = nb.analogRead('A1');
-    if flexVal > flexMax
-        flexVal = flexMax;
-    elseif flexVal < flexMin
-        flexVal = flexMin;
+    if flexVal > flexMax % if flex reading is greater than maximum reading
+        flexVal = '?'; % set to what?
+    elseif flexVal < flexMin % if flex reading is less than minimum reading
+        flexVal = flexMin; % set to what?
     end
     
     % Time to linearly interpolate the RGB value from our flex reading.
-    rawRGB = ((flexVal - flexMin)/(flexMax - flexMin))*(255 - 0) + 0;
+    rawRGB = (('?' - '?')/('?' - '?'))*('?' - '?') + '?';
 
     % To color shift, lets make green correspond to the minimum flex, and
     % red correspond to maximum flex. We'll set redRGB to roundRGB, and
@@ -210,7 +205,7 @@ while toc < 30
 
     % Finally, set the RGB to the right values (and include an optional
     % pause for less computation/noise)
-    nb.setRGB(redRGB, greenRGB, 0);
+    nb.setRGB('?', '?', 0);
     pause(0.05);
 end
 nb.setRGB(0,0,0);

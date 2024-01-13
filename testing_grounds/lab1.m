@@ -33,7 +33,7 @@ clc
 clear all
 % DEBUG: check for serial vs wifi selection, and check that the port is
 % correct
-nb = nanobot('COM7', 115200, 'serial');
+nb = nanobot('COM43', 115200, 'serial');
 
 %% 2. CALCULATE YOUR LED PARAMETERS
 %  First calculate some of the important values for this program using the
@@ -41,7 +41,7 @@ nb = nanobot('COM7', 115200, 'serial');
 
 % These are variables you can choose:
 blinkTime = 3; %time in seconds for the blink program to run
-blinkFrequency = 2;  %frequency that LED blinks in Hz
+blinkFrequency = 5;  %frequency that LED blinks in Hz
 dutyCycle = 0.5; %duty cycle of the LED in decimal form (e.g., 20% is 0.2)
 
 % These are variables which should be calculated:
