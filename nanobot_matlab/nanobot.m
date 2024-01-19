@@ -111,8 +111,12 @@ classdef nanobot < handle
         end
 
         % Method to take an ultrasonic distance reading
-        function value = ultrasonicRead(obj)
-            value = obj.read('ultrasonic',0);
+        function value = ultrasonicReadF(obj)
+            value = obj.read('ultrasonicF',0);
+        end
+
+        function value = ultrasonicReadS(obj)
+            value = obj.read('ultrasonicS',0);
         end
 
         % Method to take a reflectance sensor distance reading
@@ -151,8 +155,12 @@ classdef nanobot < handle
         % INITS
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Method to initialize the ultrasonic rangefinder
-        function initUltrasonic(obj,trigpin,echopin)
-            obj.init('ultrasonic',trigpin,echopin)
+        function initUltrasonicF(obj,trigpin,echopin)
+            obj.init('ultrasonicF',trigpin,echopin)
+        end
+
+        function initUltrasonicS(obj,trigpin,echopin)
+            obj.init('ultrasonicS',trigpin,echopin)
         end
 
         % Method to initialize a piezo buzzer

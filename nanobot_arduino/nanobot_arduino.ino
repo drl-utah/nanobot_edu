@@ -32,8 +32,10 @@ char jsonBuffer[JSON_BUFFER_SIZE];
 StaticJsonDocument<JSON_BUFFER_SIZE> doc;
 
 //Peripheral pins that get initialized by user
-int trigPin = 255;
-int echoPin = 255;
+int trigPinF = 255;
+int echoPinF = 255;
+int trigPinS = 255;
+int echoPinS = 255;
 int tonePin = 255;
 int redPin = 255;
 int greenPin = 255;
@@ -129,7 +131,7 @@ void performAccelRead() {
   sendJson(replyBuffer, replySize);
 }
 
-void performUltrasonicRead() {
+void performUltrasonicRead(int trigPin, int echoPin) {
   if (trigPin < 255 && echoPin < 255) {
     unsigned long ultraread = 0; //pulseIn returns an unsigned long
     digitalWrite(trigPin, LOW);
@@ -402,8 +404,11 @@ void executeCommand(String input) {
       else if (strcmp(periph, "encoder") == 0) {
         performEncoderRead(pin);
       }
-      else if (strcmp(periph, "ultrasonic") == 0) {
-        performUltrasonicRead();
+      else if (strcmp(periph, "ultrasonicF") == 0) {
+        performUltrasonicRead(trigPinF,echoPinF);
+      }
+      else if (strcmp(periph, "ultrasonicS") == 0) {
+        performUltrasonicRead(trigPinS, echoPinS);
       }
       else if (strcmp(periph, "reflectance") == 0) {
         performReflectanceRead();
@@ -465,11 +470,16 @@ void executeCommand(String input) {
         pinMode(pin, OUTPUT);
         sendAck();
       }
-      else if (strcmp(periph, "ultrasonic") == 0) {
-        trigPin = pin; pinMode(trigPin, OUTPUT);
-        echoPin = value; pinMode(echoPin, INPUT);
+      else if (strcmp(periph, "ultrasonicF") == 0) {
+        trigPinF = pin; pinMode(trigPinF, OUTPUT);
+        echoPinF = value; pinMode(echoPinF, INPUT);
         sendAck();
       }
+        else if (strcmp(periph, "ultrasonicS") == 0) {
+        trigPinS = pin; pinMode(trigPinS, OUTPUT);
+        echoPinS = value; pinMode(echoPinS, INPUT);
+        sendAck();
+      } 
       else if (strcmp(periph, "piezo") == 0) {
         piezoMotorSwitcher(pin);
         sendAck();
