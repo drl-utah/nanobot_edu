@@ -32,25 +32,22 @@
 
 clc
 clear all
-nb = nanobot('COM47', 115200, 'serial');
+nb = nanobot('?', 115200, 'serial');
 
 %% 2. Testing the onboard IMU
 % Your Arduino board has a built-in accelerometer that allows tilt
 % orientation to be determined. Turn on and connect to your board, and test
 % your IMU using some of the nanobot_demo.m code.
-
-% Solution:
-nb.livePlot('accel');
+%
+% HINT; 'accel' stands for accelerometer or IMU
 
 %% 3. Visualizing IMU tilt
 % The following code blocks will set up a 3D block that will rotate as you change
-% your tilt of the board, once you figure out all of the ??? areas. In
+% your tilt of the board, once you figure out all of the '?' areas. In
 % addition, a game has been set up in which you must match a random
 % orientation.
 
-% Solution:
-% as follows...
-%% Initialize the cube
+%% Initialize the cube (RUN ME)
 xc=0; yc=0; zc=0;    % cube center coordinates
 L=2;                 % cube size (length of an edge)
 alpha=0.8;             % transparency (max=1=opaque)
@@ -86,9 +83,9 @@ end
 meanOffx = mean(vals(1,:));
 meanOffy = mean(vals(2,:));
 meanOffz = mean(vals(3,:));
-xOff = 0 - meanOffx;
-yOff = 0 - meanOffy;
-zOff = 1 - meanOffz;
+xOff = '?' - meanOffx; % What is the expected x value when the chip is flat?
+yOff = '?' - meanOffy; % What is the expected y value when the chip is flat?
+zOff = '?' - meanOffz; % What is the expected z value when the chip is flat?
 
 % % IF PLAYING GAME, UNCOMMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % pitchT = randi([-60, 60]);
@@ -133,11 +130,11 @@ while(toc<20) % stop after this many seconds
     ay = meany + yOff;
     az = meanz + zOff;
 
-    theta = atan(ax / sqrt(ay^2 + az^2)); % Taken from readings
-    psi = atan(ay / sqrt(ax^2 + az^2)); % ^
-    phi = atan(sqrt(ax^2 + ay^2) / az); % ^
+    theta = '?'; % Find this in the readings!
+    psi = '?'; % ^
+    phi = '?'; % ^
     
-    dcm_acc = angle2dcm(0, psi, theta); %creates the rotation matrix
+    dcm_acc = angle2dcm('?', '?', '?'); % creates the rotation matrix, one of the parameters will be 0!
 
     % % IF PLAYING GAME, UNCOMMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%
     % pitchCheck = psi * 180/pi;

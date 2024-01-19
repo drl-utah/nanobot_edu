@@ -38,7 +38,7 @@
 
 clc
 clear all
-nb = nanobot('COM47', 115200, 'serial');
+nb = nanobot('?', 115200, 'serial');
 
 %% 2. Physical setup
 % We will be creating a voltage divider with the FSR and a single
@@ -54,11 +54,6 @@ nb = nanobot('COM47', 115200, 'serial');
 % NOTE: Depending on the quality of your FSR, the minimum resistance could
 % range from a few hundred Ohms, to several kOhms. This means that you may
 % not be able to read the entire 0-1023 ADC range.
-%
-% Solution:
-% For 10k in the Figure 3 diagram, voltage values appear to be about 0V at
-% 20g, 1.8V at 100g, and 3.4V at 1000g. Using a 5V ADC, this would
-% correspond to values of ADC = (V / Vcc) * 1023 = 0, 368, 696. 
 
 %% 2.5 Setting up the RGB LED
 % Similarly to last lab, wire up the RGB LED. Some example pins could be
@@ -84,26 +79,25 @@ nb = nanobot('COM47', 115200, 'serial');
 % your microcontroller.
 
 % For live plotting (uncomment lines below):
-% nb.pinMode('A1', 'ainput');
-% nb.livePlot('analog', 'A1');
-% maxADC = '?'
+% nb.pinMode('?', 'ainput');
+% nb.livePlot('analog', '?');
+% maxVal = '?'
 
 % For sampling (uncomment lines below):
 % % Forcefully squeeze the FSR within 5 seconds to record the max ADC value
-% nb.pinMode('A1', 'ainput');
+% nb.pinMode('?', 'ainput');
 % tic
 % vals = [];
 % while (toc < 5)
-%     vals(length(vals)+1) = nb.analogRead('A1');
+%     vals(length(vals)+1) = nb.analogRead('?');
 % end
-% maxADC = max(vals);
+% maxVal = max(vals);
 % fprintf('max val = %.0f\n', maxADC);
 
-% Solution:
-maxVal = 802;
+maxVal = '?';
 
-nb.pinMode('A1', 'ainput');
-nb.initRGB('D12', 'D11', 'D10');
+nb.pinMode('?', 'ainput');
+nb.initRGB('?', '?', '?');
 adcRange = [0, maxVal];
 rgbRange = [0, 255];
 
@@ -124,11 +118,11 @@ while(toc < 20) % Run for 20 seconds
     end
 
     % Use interp1 to find the intensity value corresponding to adc
-    scale = interp1(adcRange, rgbRange, adc);
+    scale = interp1('?', '?', '?');
     brightness = scale / 255;
 
-    % Calculate the corresponding RGB values (change the values being
-    % multiplied by brightness to any value between 0 and 255 to shift
+    % Calculate the corresponding RGB values (modify the values being
+    % multiplied by brightness to any value between 0 and 255 to change
     % colors!)
     r = round(brightness * 255);
     g = round(brightness * 0);
@@ -148,14 +142,13 @@ nb.setRGB(0, 0, 0);
 % HINT: If you haven't changed your circuit, your max value from the
 % previous section should be used.
 
-% Solution:
-nb.pinMode('A1', 'ainput');
+nb.pinMode('?', 'ainput');
 
 % Let's find how many samples we can record over 1 second:
 ctr = 0;
 tic
 while(toc < 1)
-    temp = nb.analogRead('A1');
+    temp = nb.analogRead('?');
     ctr = ctr + 1;
 end
 % Thus the period (in seconds) between samples is:
@@ -168,11 +161,11 @@ riseHigh = 0.9 * maxVal;
 ctr = 0;
 tic
 while(toc < 10) 
-    adcVal = nb.analogRead('A1');
+    adcVal = nb.analogRead('?');
 
     if(adcVal > riseLow)
         while(adcVal < riseHigh)
-            adcVal = nb.analogRead('A1');
+            adcVal = nb.analogRead('?');
             ctr = ctr + 1;
         end
         break;
@@ -200,10 +193,10 @@ fprintf("The rise time is: %d seconds\n", riseTime);
 
 % Solution:
 % Setup:
-nb.initRGB('D12','D11','D10');
+nb.initRGB('?','?','?');
 nb.setRGB(0, 0, 0);
-plusMinTol = 75; % ADC can fluctuate between 2 * this val centered around target
-adcMax = maxVal; % Max ADC value for this setup, based on live read.
+plusMinTol = '?'; % ADC can fluctuate between 2 * this val centered around target
+adcMax = '?'; % Max ADC value for this setup, based on live read.
 adcTarget = randi(adcMax);
 lowBnd = adcTarget - plusMinTol;
 upBnd = adcTarget + plusMinTol;
@@ -221,7 +214,7 @@ while(toc < 1)
     numreads = 5;
     vals = zeros(1,numreads);
     for i = 1:numreads
-        vals(i) = nb.analogRead('A1');
+        vals(i) = nb.analogRead('?'); % Pin corresponding to player 1
     end
     temp = round(mean(vals));
     ctr = ctr + 1;
@@ -234,32 +227,33 @@ while(true)
     numreads = 5;
     vals = zeros(1,numreads);
     for i = 1:numreads
-        vals(i) = nb.analogRead('A1');
+        vals(i) = nb.analogRead('?'); % Pin corresponding to player 1
     end
     p1Val = round(mean(vals));
 
     numreads = 5;
     vals = zeros(1,numreads);
     for i = 1:numreads
-        vals(i) = nb.analogRead('A2');
+        vals(i) = nb.analogRead('?');  % Pin corresponding to player 2
     end
     p2Val = round(mean(vals));
+
     fprintf("Target: %d | P1: %d | P2: %d\n", adcTarget, p1Val, p2Val);
 
-    if((p1Val >= lowBnd && p1Val <= upBnd) && p1time > 0)
+    if((p1Val >= '?' && p1Val <= '?') && p1time > '?')
         p1time = p1time - 2*period; % Since 2 reads were done
-    elseif(p1time <= 0)
+    elseif(p1time <= '?')
         p1Win = 1;
     else
-        p1time = 1;
+        p1time = 1; % Reset the clock
     end
 
-    if((p2Val >= lowBnd && p2Val <= upBnd) && p2time > 0)
+    if((p2Val >= '?' && p2Val <= '?') && p2time > '?')
         p2time = p2time - 2*period; % Since 2 reads were done
-    elseif(p2time <= 0)
+    elseif(p2time <= '?')
         p2Win = 1;
     else
-        p2time = 1;
+        p2time = 1; % Reset the clock
     end
 
     if(p1Win || p2Win)
@@ -270,13 +264,13 @@ end
 % Winner selection
 if(p1Win && p2Win)
     fprintf("WINNER: It's a tie! :O\n")
-    nb.setRGB(0, 128, 0);
+    nb.setRGB('?', '?', '?'); % Set to green or tie color
 elseif(p1Win)
     fprintf("WINNER: Player 1 wins!\n")
-    nb.setRGB(128, 0, 0);
+    nb.setRGB('?', '?', '?'); % Set to red or player 1's win color
 else
     fprintf("WINNER: Player 2 wins!\n")
-    nb.setRGB(0, 0, 128);
+    nb.setRGB('?', '?', '?'); % Set to blue or player 2's win color
 end
 pause(5);
 fprintf("Thanks for playing!\n");
