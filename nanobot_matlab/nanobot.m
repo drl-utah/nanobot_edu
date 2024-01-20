@@ -111,12 +111,12 @@ classdef nanobot < handle
         end
 
         % Method to take an ultrasonic distance reading
-        function value = ultrasonicReadF(obj)
-            value = obj.read('ultrasonicF',0);
+        function value = ultrasonicRead1(obj)
+            value = obj.read('ultrasonic1',0);
         end
 
-        function value = ultrasonicReadS(obj)
-            value = obj.read('ultrasonicS',0);
+        function value = ultrasonicRead2(obj)
+            value = obj.read('ultrasonic2',0);
         end
 
         % Method to take a reflectance sensor distance reading
@@ -155,12 +155,12 @@ classdef nanobot < handle
         % INITS
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Method to initialize the ultrasonic rangefinder
-        function initUltrasonicF(obj,trigpin,echopin)
-            obj.init('ultrasonicF',trigpin,echopin)
+        function initUltrasonic1(obj,trigpin,echopin)
+            obj.init('ultrasonic1',trigpin,echopin)
         end
 
-        function initUltrasonicS(obj,trigpin,echopin)
-            obj.init('ultrasonicS',trigpin,echopin)
+        function initUltrasonic2(obj,trigpin,echopin)
+            obj.init('ultrasonic2',trigpin,echopin)
         end
 
         % Method to initialize a piezo buzzer
@@ -319,7 +319,7 @@ classdef nanobot < handle
                     else
                         error('Invalid encoder values');
                     end
-                case {'digital', 'analog', 'ultrasonic'}
+                case {'digital', 'analog', 'ultrasonic1','ultrasonic2'}
                     % For 'digital', 'analog', and 'ultrasonic', we expect a 'value' field
                     if isfield(jsonReply, 'value')
                         value = jsonReply.value;
@@ -378,7 +378,11 @@ classdef nanobot < handle
             switch periph
                 case 'arduino'
                     obj.sendJSON('init',periph,0,0);
-                case 'ultrasonic'
+                case 'ultrasonic1'
+                    trigPin = obj.convertPin(pin);
+                    echoPin = obj.convertPin(value);
+                    obj.sendJSON('init', periph, trigPin, echoPin);
+                 case 'ultrasonic2'
                     trigPin = obj.convertPin(pin);
                     echoPin = obj.convertPin(value);
                     obj.sendJSON('init', periph, trigPin, echoPin);
