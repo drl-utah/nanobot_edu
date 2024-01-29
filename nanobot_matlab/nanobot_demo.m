@@ -161,11 +161,13 @@ nb.setRGB(0,0,0);
 % ULTRASONIC DISTANCE
 
 %Initialize the ultrasonic sensor with TRIGPIN, ECHOPIN
-nb.initUltrasonic('D8','D7')
-
+nb.initUltrasonic1('D2','D3')
+nb.initUltrasonic2('D4','D5')
+front = nb.ultrasonicRead1();
+left = nb.ultrasonicRead2();
 %Take a single ultrasonic reading
-val = nb.ultrasonicRead();
-fprintf('val = %i\n', val)
+
+fprintf('Front dist = %i   Left dist = %i\n', front, left)
 %%
 % PIEZO BUZZER
 
