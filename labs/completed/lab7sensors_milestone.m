@@ -13,7 +13,8 @@
 % Deliverables:
 % - Demonstrate functioning code that allows the robot to detect the
 % presence of a line of black electrical tape against a white background,
-% and determine its location relative to the line.
+% and determine its location relative to the line. Have the robot change an
+% RGB LED's color and brightness depending on which state it's in.
 %%%%%%%%%%%%%%
 
 %% 1. CONNECT TO YOUR NANOBOT
