@@ -151,6 +151,7 @@ while (true)
         case 0b0110
             fprintf("0110 | Centered!\n"); % 2 HI
             nb.setRGB(0,255,0);
+
         case 0b0000
             fprintf("0000 | No line detected...\n"); % 0 HI
             nb.setRGB(0,0,0);
@@ -168,7 +169,7 @@ while (true)
             nb.setRGB(0,0,128);
         case 0b1100
             fprintf("1100 | Closer to line on the left!\n"); % 2 HI
-            nb.setRGB(128,0,0);
+            
         case 0b0111
             fprintf("0111 | Angled to line on the right!\n"); % 3 HI
             nb.setRGB(0,128,128);
@@ -185,5 +186,8 @@ while (true)
             fprintf("ERROR: Unexpected case, state is %s...\n", dec2bin(state));
             nb.setRGB(0,0,0);
     end
+    leftLED = 128 + 
+    rightLED = 128 +
+    nb.setRGB(leftLED,0,rightLED);
     pause(0.05); % Slow down to make output comprehensible
 end
