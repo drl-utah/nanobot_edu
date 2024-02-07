@@ -32,7 +32,7 @@
 
 clc
 clear all
-nb = nanobot('COM47', 115200, 'serial');
+nb = nanobot('COM43', 115200, 'serial');
 
 %% 2. Testing the onboard IMU
 % Your Arduino board has a built-in accelerometer that allows tilt
@@ -90,27 +90,27 @@ xOff = 0 - meanOffx;
 yOff = 0 - meanOffy;
 zOff = 1 - meanOffz;
 
-% % IF PLAYING GAME, UNCOMMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% pitchT = randi([-60, 60]);
-% pitchT = pitchT * pi/180;
-% rollT = randi([-60, 60]);
-% rollT = rollT * pi/180;
-% 
-% dcm_targ = angle2dcm(0, pitchT, rollT);
-% V_targ = dcm_targ*V;
-% X_targ=reshape(V_targ(1,:),4,6);
-% Y_targ=reshape(V_targ(2,:),4,6);
-% Z_targ=reshape(V_targ(3,:),4,6);
-% 
-% figure(1)
-% 
-% fill3(X_targ,Y_targ,Z_targ,C,'FaceAlpha',alpha);
-% xlim([-2 2]);
-% ylim([-2 2]);
-% zlim([-2 2]);
-% box on;
-% drawnow
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IF PLAYING GAME, UNCOMMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+pitchT = randi([-60, 60]);
+pitchT = pitchT * pi/180;
+rollT = randi([-60, 60]);
+rollT = rollT * pi/180;
+
+dcm_targ = angle2dcm(0, pitchT, rollT);
+V_targ = dcm_targ*V;
+X_targ=reshape(V_targ(1,:),4,6);
+Y_targ=reshape(V_targ(2,:),4,6);
+Z_targ=reshape(V_targ(3,:),4,6);
+
+figure(1)
+
+fill3(X_targ,Y_targ,Z_targ,C,'FaceAlpha',alpha);
+xlim([-2 2]);
+ylim([-2 2]);
+zlim([-2 2]);
+box on;
+drawnow
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 tic; %to count the seconds
 
@@ -137,20 +137,20 @@ while(toc<20) % stop after this many seconds
     psi = atan(ay / sqrt(ax^2 + az^2)); % ^
     phi = atan(sqrt(ax^2 + ay^2) / az); % ^
     
-    dcm_acc = angle2dcm(0, psi, theta); %creates the rotation matrix
+    dcm_acc = angle2dcm(0, -theta, psi); %creates the rotation matrix
 
-    % % IF PLAYING GAME, UNCOMMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % pitchCheck = psi * 180/pi;
-    % rollCheck = theta * 180/pi;
-    % if((pitchCheck > (rad2deg(pitchT) - 5)) & ...
-    %         (pitchCheck < (rad2deg(pitchT) + 5)) & ...
-    %         (rollCheck > (rad2deg(rollT) - 5)) & ...
-    %         (rollCheck < (rad2deg(rollT) + 5)))
-    %     fprintf('Matching desired orientation!\n');
-    % else
-    %     fprintf('Not matching desired orientation...\n');
-    % end
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % IF PLAYING GAME, UNCOMMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    pitchCheck =  -theta * 180/pi;
+    rollCheck = psi * 180/pi;
+    if((pitchCheck > (rad2deg(pitchT) - 5)) & ...
+            (pitchCheck < (rad2deg(pitchT) + 5)) & ...
+            (rollCheck > (rad2deg(rollT) - 5)) & ...
+            (rollCheck < (rad2deg(rollT) + 5)))
+        fprintf('Matching desired orientation!\n');
+    else
+        fprintf('Not matching desired orientation...\n');
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     V_rot=dcm_acc*V;
     X_rot=reshape(V_rot(1,:),4,6);

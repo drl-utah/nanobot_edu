@@ -34,14 +34,15 @@ clear all
 nb = nanobot('COM47', 115200, 'serial');
 
 %% 2. DC motor speed based on IMU Tilt
-%  Solution:
-% Goals:
-%   - Gain tilt access (lab 5?)
-%   - Only care about relative tilt angle, not plot.
-%   - No need to calculate angle if IMU raw values can be used.
+%  Using readings from your onboard IMU, control the speed of your DC motor
+%  based on the tilt angle of the board. Note, there may be multiple
+%  approaches to map the tilt to a PWM value.
+%   Connect your motor to one of the motor ports on your motor carrier
+%   using the screw-down connectors, and make sure to take note of which
+%   motor pins it corresponds to.
 tic
 
-while (toc < 20)
+while (toc < 20) % ADJUST ME if you want to have longer/shorter trials
     %Here is an example of taking 5 accelerometer readings, then averaging
     %each axis:
     numreads = 5;
@@ -57,82 +58,56 @@ while (toc < 20)
     meany = mean(vals(2,:));
     meanz = mean(vals(3,:));
     
-    % Conversion of IMU value to duty cycle
-    % Since the onboard IMU is already normalized to a range between -1 and 1,
-    % we can just use a direct scale factor to get the duty cycle
-    nb.setMotor(1, meany * 50); % Chose 50 because 100 scares me
+    % Implement your tilt to motor PWM code below:
+    % HINT: Think about the value ranges of your IMU data and setMotor()'s
+    % accepted PWM values
+    % NOTE: Depending on your implementation, you may find it useful to
+    % restrict your expected motor speed range. +/-100% duty cycle can be a
+    % bit aggressive on the motor and will drain your battery quickly.
 
-    pause(0.01); % No need to update too frequently
+
 end
-% DONT FORGET THIS!
-nb.setMotor(1, 0);
+nb.setMotor('?', 0);
+
+%% Run me if you manually interrupted the above code to reset the motor speed to zero
+nb.setMotor('?', 0);
 
 %% 3. Servo angle matching flex sensor
-% Solution:
-% Keep in mind, the resistance of the flex sensor is likely to only change
-% significantly between 0 and 90 degrees.
+% For this section, we will try to match the bend angle of our flex sensor
+% with our servo's wiper. Keep in mind, the resistance of the flex sensor 
+% is likely to only change significantly between 0 and 90 degrees. Hook up
+% your servo to one of the servo ports (with the brown wire aligned to
+% ground, the white stripe on the underside of the board), and set up a
+% voltage divider with your flex sensor and 10k resistor. Connect it to one
+% of your analog read pins, and use the value to determine the
+% corresponding flex sensor and servo angles.
 tic
 
 while (toc < 30)
-    % Find average value over 10 samples of A1 to get a steady signal
+    % Find average value over 10 samples to get a steady signal
     numreads = 10;
     vals = zeros(1,numreads);
     for i = 1:numreads
-        vals(i) = nb.analogRead('A1');
+        vals(i) = nb.analogRead('?');
     end
     meanval = mean(vals);
 
-    % Ensure clean range
-    if meanval > 550
-        meanval = 550;
-    elseif meanval < 380
-        meanval = 380;
-    end
+    % Determine what range of values correspond to bend angles between 0
+    % and 90 degrees:
 
-    maxVal = 550 - 380;
-    flippedVal = 550 - meanval;
-    
-    servoAngle = (flippedVal / maxVal) * 90;
-    nb.setServo(1, servoAngle);
-    pause(0.01);
+    % Knowing that your servo angle range should go between 0 and 90,
+    % convert your analog value into a servo angle, and set the
+    % corresponding servo motor.
 
 end
-nb.setServo(1, 0);
+nb.setServo('?', 0);
+
+%% Run me to reset servo angle to zero if manually interrupted
+nb.setServo('?',0);
 
 %% 4. EXTENSION (optional)
-%  Use the IMU to control motor speed and the servo angle at the same time!
-
-%  Solution:
-tic
-
-while (toc < 20)
-    %Here is an example of taking 5 accelerometer readings, then averaging
-    %each axis:
-    numreads = 5;
-    vals = zeros(3,numreads);
-    for i = 1:numreads
-        val = nb.accelRead();
-        vals(1,i) = val.x;
-        vals(2,i) = val.y;
-        vals(3,i) = val.z;
-    end
-    %Note the index, getting every column in a specific row for each axis:
-    meanx = mean(vals(1,:));
-    meany = mean(vals(2,:));
-    meanz = mean(vals(3,:));
-    
-
-    nb.setMotor(1, round(50 * meanx));
-    nb.setServo(1, 90 + round(90 * meany));
-
-    pause(0.01); % No need to update too frequently
-end
-nb.setMotor(1,0);
-nb.setServo(1,0);
-
-%% Run if manually stopped to clear motors
-nb.setMotor(1,0);
-nb.setServo(1,0);
+%  Use the IMU to control motor speed and the servo angle at the same
+%  time!
 
 %% X. DISCONNECT
 %  Clears the workspace and command window, then

@@ -2,7 +2,7 @@ clc
 clear all
 
 % Create an instance of the nanobot class
-nb = nanobot('/dev/cu.usbmodem21401', 115200, 'serial');
+nb = nanobot('COM47', 115200, 'serial');
 
 %%
 % VALID PINS

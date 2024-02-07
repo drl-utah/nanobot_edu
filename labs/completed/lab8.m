@@ -35,10 +35,6 @@ nb = nanobot('COM47', 115200, 'serial');
 
 %% 2. DC motor speed based on IMU Tilt
 %  Solution:
-% Goals:
-%   - Gain tilt access (lab 5?)
-%   - Only care about relative tilt angle, not plot.
-%   - No need to calculate angle if IMU raw values can be used.
 tic
 
 while (toc < 20)

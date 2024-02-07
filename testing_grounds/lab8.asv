@@ -3,6 +3,8 @@
 % LAB 8 -- Actuators 1: DC Motors and Encoders
 %%%%%%%%%%%%%
 
+% TODO: Add ??? areas and give hints
+
 %%%%%%%%%%%%%
 % Feedback between sensor inputs and actuator outputs is at the core of a
 % huge number of robotic and cyberphysical system applications. In this
@@ -62,7 +64,7 @@ while (toc < 20)
     % we can just use a direct scale factor to get the duty cycle
     nb.setMotor(1, meany * 50); % Chose 50 because 100 scares me
 
-    pause(0.01); % No need to update too frequently
+    pause(0.1); % No need to update too frequently
 end
 % DONT FORGET THIS!
 nb.setMotor(1, 0);
