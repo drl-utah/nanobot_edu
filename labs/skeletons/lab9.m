@@ -56,6 +56,14 @@ maxBPM = '?';
 % bottom of the page (per MATLAB syntax guidelines) to calculate and return
 % the period (in ms) of a quarter note. Go define the function, then return
 % here.
+% Give your function definition a test here once you've filled it out:
+% Make sure you put your interpolation bounds in the same positions you
+% specified in the function definition
+% E.g. qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
+% Adjust your potentiometer and re-run this section, are the BPM values
+% different?
+qNote = qNoteCalc(nb, '?', '?', '?', '?');
+
 
 %% 2. Setting the frequencies and periods
 % Insert a wire from your piezo into the M4+ port, and the other into the
@@ -123,6 +131,21 @@ pause(qNote*2/1000);
 
 %% 5. EXTENSION (optional)
 %  Take arbitrary character input from your keyboard to play a song.
+% HINT: Since MATLAB doesn't have default support for keyboard event
+% listening, we could set up a song by getting input from the command line.
+% One way of doing this may be to use CELL ARRAYS, with each cell
+% containing a two-letter string. The first letter could indicate the note,
+% and the second could indicate the timing (quarter, half, whole, etc.)
+% HINT: One way of mapping characters to frequency values and periods is to
+% use the matlab containers.Map() function.
+% HINT: Cell arrays are indexed as follows:
+%   - cellArray(i) -> returns the actual cell object at i
+%   - cellArray{i} -> returns the object stored in cell i
+%   - cellArray{i}(j) -> returns a value at index j in an array stored in cell i
+
+% Here are some useful resources:
+% - https://www.mathworks.com/help/matlab/cell-arrays.html
+% - https://www.mathworks.com/help/matlab/ref/containers.map.html
 
 %% X. DISCONNECT
 %  Clears the workspace and command window, then
@@ -139,12 +162,16 @@ clear all
 % values used by the function from outside as parameters. In this case, its
 % the nanobot, as well as our interpolation bounds.
 
-function qNotePer = qNoteCalc(fixme1, fixme2, fixme3, fixme4, fixme5) % replace fixmes with appropriate parameters
+% Replace fixmes below with appropriate interpolation bounds. Order of the parameters doesn't
+% matter so long as you pass the correct value to the correct parameter
+% position.
+function qNotePer = qNoteCalc(nb, fixme2, fixme3, fixme4, fixme5) % min and max adc, min and max BPM
+
     % Using the parameters you pass to the function, do an analog read,
     % then linearly interpolate to find a corresponding bpm value. Then
     % calculate the period (in ms) of a quarter note at that bpm
-    adc = '?';
-    bpm = '?';
+    adc = '?'; % Take a reading here!
+    bpm = '?'; % Use linear interpolation here!
     fprintf("Currently selected BPM: %d\n", bpm);
     % Convert BPM to period (ms)
     qNotePer = '?'; % 60 1-second beats in a minute, each beat is a quarter note, 1 second is 1000 ms
