@@ -41,13 +41,13 @@ nb = nanobot('COM47', 115200, 'serial');
 % BPM values for most songs is between 40 and 180 BPM.
 % Use the live plot code to find your minimum and maximum ADC values.
 
-% nb.pinMode('A1', 'ainput');
-% nb.livePlot('analog', 'A1'); % Use me to find your min and max analog values
+% nb.pinMode('?', 'ainput');
+% nb.livePlot('analog', '?'); % Use me to find your min and max analog values
 
-minADC = 0;
-maxADC = 1023;
-minBPM = 40;
-maxBPM = 180;
+minADC = '?';
+maxADC = '?';
+minBPM = '?';
+maxBPM = '?';
 
 %% Defining a function for finding quarter note period
 % If we want to change our BPM while the song is playing, we need to
@@ -78,7 +78,7 @@ maxBPM = 180;
 
 % Solution:
 % Scale frequency array (using equal-tempered frequencies for key-independence)
-noteFrequencies = [261.6, 293.7, 329.7, 349.2, 392, 440, 493, 523.3];
+noteFrequencies = ['?', '?', '?', '?', '?', '?', '?', '?'];
 
 % Below is a useful tool for calculating note periods depending on the time
 % signature and type of note:
@@ -90,133 +90,39 @@ noteFrequencies = [261.6, 293.7, 329.7, 349.2, 392, 440, 493, 523.3];
 % Recall, setPiezo() takes the period to play in ms as its second parameter
 % (as a whole number), but pause() takes it in seconds.
 
-% Solution:
-nb.initPiezo('M4');
-nb.pinMode('A1', 'ainput');
+nb.initPiezo('?');
+nb.pinMode('?', 'ainput');
 
-for note = 1:length(noteFrequencies)
-    qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
+for note = 1:length('?')
+    qNote = '?'; % HINT: Your function definition will prove useful here!
     nb.setPiezo(noteFrequencies(note), round(qNote));
-    pause(qNote/1000);  % THIS IS IMPORTANT
+    pause(qNote/1000);  % THIS IS IMPORTANT! It delays the code while allowing the piezo to play.
 end
 
 %% 4. Playing 'Hot Cross Buns' on a Piezo Speaker
 % Play Hot Cross Buns at 120 BPM. Refer to the music sheet on the Canvas
-% lab page.
+% lab page. I've given you the first note of bar 1 so you can see the structure of
+% each note.
+% HINT: Using for loops for Bar 2 of the song may help you reduce code
+% clutter.
 
 % Solution:
-nb.initPiezo ('M4');
-nb.pinMode('A1', 'ainput');
-
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
+nb.initPiezo ('?');
+nb.pinMode('?', 'ainput');
 
 % Bar 1:
+% First note (half): 
+qNote = qNoteCalc('?', '?', '?', '?', '?');
 nb.setPiezo(noteFrequencies(3), round(qNote*2));
 pause(qNote*2/1000);
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(2), round(qNote*2));
-pause(qNote*2/1000);
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(1), round(qNote*4));
-pause(qNote*4/1000);
-
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(3), round(qNote*2));
-pause(qNote*2/1000);
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(2), round(qNote*2));
-pause(qNote*2/1000);
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(1), round(qNote*4));
-pause(qNote*4/1000);
-
 
 % Bar 2:
-for note = 1:4
-    qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-    nb.setPiezo(noteFrequencies(1), round(qNote));
-    pause(qNote/1000);
-end
-
-for note = 1:4
-    qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-    nb.setPiezo(noteFrequencies(2), round(qNote));
-    pause(qNote/1000);
-end
 
 % Bar 3:
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(3), round(qNote*2));
-pause(qNote*2/1000);
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(2), round(qNote*2));
-pause(qNote*2/1000);
-qNote = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM);
-nb.setPiezo(noteFrequencies(1), round(qNote*2));
-pause(qNote*2/1000);
 
 
 %% 5. EXTENSION (optional)
 %  Take arbitrary character input from your keyboard to play a song.
-
-% Solution:
-nb.initPiezo('M4');
-
-getBPM = "Enter the BPM of the song: ";
-bpm = input(getBPM);
-% fprintf("Please enter an array of notes according to the instructions below...\n");
-% fprintf("The input should be a valid natural note (i.e. not sharp or flat) formatted as 'note'\n");
-% fprintf("e.g. 'c' for middle C.\n");
-% getNotes = "Enter the array: ";
-% noteList = input(getNotes);
-% getTimes = "Enter the corresponding types of notes, 1 for whole, 2 for half, 4 for quarter, and so on: ";
-% timeList = input(getTimes);
-fprintf("Please enter a song as a cell array of two-character strings\n");
-fprintf("The first character should be a valid natural note (i.e. not sharp or flat) e.g 'c' for middle C\n");
-fprintf("NOTE: use 'o' for the C an octave above middle C.\n");
-fprintf("The second character should be a letter indicating the type of note.\n")
-fprintf("e.g. 'w' for whole, 'h' for half, 'q' for quarter, 'e' for eighth, and 's' for sixteenths.\n")
-getCells = "Enter cell array: ";
-songCells = input(getCells);
-
-for i = 1:length(songCells)
-    if length(songCells{i}) ~= 2
-        fprintf("Invalid note-time pair at cell: %d\n", i);
-        exit();
-    elseif ~contains("cdefgabo", songCells{i}(1))
-        fprintf("Invalid note. '%c' is not a valid natural note\n", songCells{i}(1));
-        exit();
-    elseif ~contains("whqes", songCells{i}(2))
-        fprintf("Invalid beat type. '%s' is not a valid beat length\n", songCells{i}(2));
-        exit();
-    end
-end
-
-% Should have valid contents now
-beatPeriod = 60 / bpm;  % in seconds
-wPeriod = 4 * beatPeriod;
-hPeriod = 2 * beatPeriod;
-qPeriod = beatPeriod;
-ePeriod = 0.5 * beatPeriod;
-sPeriod = 0.25 * beatPeriod;
-
-noteKeys = {'c','d','e','f','g','a','b','o'};
-noteVals = [261.6, 293.7, 329.7, 349.2, 392, 440, 493, 523.3];
-noteMap = containers.Map(noteKeys, noteVals);
-timeKeys = {'w','h','q','e','s'};
-timeVals = [wPeriod, hPeriod, qPeriod, ePeriod, sPeriod];
-timeMap = containers.Map(timeKeys, timeVals);
-
-% Playing logic
-songLen = length(songCells);
-for i = 1:songLen
-    freq = noteMap(songCells{i}(1));
-    dur = timeMap(songCells{i}(2)); % in s
-    nb.setPiezo(freq, dur * 1000); % convert to ms
-    pause(dur);
-end
-
-
 
 %% X. DISCONNECT
 %  Clears the workspace and command window, then
@@ -233,10 +139,13 @@ clear all
 % values used by the function from outside as parameters. In this case, its
 % the nanobot, as well as our interpolation bounds.
 
-function qNotePer = qNoteCalc(nb, minADC, maxADC, minBPM, maxBPM)
-    adc = nb.analogRead('A1');
-    bpm = round(interp1([minADC, maxADC], [minBPM, maxBPM], adc));
+function qNotePer = qNoteCalc(fixme1, fixme2, fixme3, fixme4, fixme5) % replace fixmes with appropriate parameters
+    % Using the parameters you pass to the function, do an analog read,
+    % then linearly interpolate to find a corresponding bpm value. Then
+    % calculate the period (in ms) of a quarter note at that bpm
+    adc = '?';
+    bpm = '?';
     fprintf("Currently selected BPM: %d\n", bpm);
     % Convert BPM to period (ms)
-    qNotePer = round((60/bpm) * 1000);
+    qNotePer = '?'; % 60 1-second beats in a minute, each beat is a quarter note, 1 second is 1000 ms
 end
