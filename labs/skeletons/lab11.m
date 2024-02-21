@@ -27,7 +27,7 @@
 
 clc
 clear all
-nb = nanobot('COM50', 115200, 'serial');
+nb = nanobot('?', 115200, 'serial');
 
 %% 2. Approximating the encoder's sampling frequency
 % To gain an approximation of the encoder's sampling frequency, we want to
@@ -38,29 +38,22 @@ nb = nanobot('COM50', 115200, 'serial');
 
 tic
 runtime = 1;
-% 14% duty cycle seems to be the lowest that doesn't cause aliasing
-% wraparound with the encoder.
-nb.setMotor(1,10); % orig 10
-nb.setMotor(2,10);
+
+nb.setMotor(1,'?');
 pause(1); % Allow motor to reach constant speed
 val = nb.encoderRead(1);
 pause(runtime);
 val = nb.encoderRead(1);
 
-fprintf('counts since last read: %i, counts per second: %i\n', val.counts,val.countspersec);
+fprintf('counts since last read: %i, counts per 1/100th second: %i\n', val.counts,val.countspersec);
 nb.setMotor(1,0);
 nb.setMotor(2,0);
 
 % Did val.counts samples in runtime sec, calculate sample freq:
-sampleFreq = abs(val.counts / runtime);
+sampleFreq = abs('?'); % Think in terms of counts / total run time
 
 
 % disp(vals) %hint: if this is how many samples you got in runtime, then what is the sampling frequency?
-
-% Answer: It seems that the highest value I can read in counts over 1
-% second is around 3k at a duty cycle of 14%, so the sample frequency must be at least that
-% much. The sign of the duty cycle corresponds to the direction in which
-% the motor spins.
 
 val.counts = 0;
 val.countspersec = 0;
@@ -72,9 +65,9 @@ val.countspersec = 0;
 % amplitude oscilations less than 2%, and a rise time of less than 500 ms.
 
 % PID terms for speed
-KpS = 1; % Proportional gain
-KiS = 0.0; % Integral gain
-KdS = 0.001; % Derivative gain
+KpS = '?'; % Proportional gain
+KiS = '?'; % Integral gain
+KdS = '?'; % Derivative gain
 
 % EXTENSION
 % PID terms to maintain straight line
@@ -83,7 +76,7 @@ KdS = 0.001; % Derivative gain
 % KdT = 0.000;
 
 curSpeed = 0;
-endSpeed = 10;
+endSpeed = '?'; % Set this between 10 and 14
 
 % Initialize PID variables
 prevErrorS = 0;
@@ -94,7 +87,7 @@ integralS = 0;
 %integralT = 0;
 
 
-speeds1 = 0;
+speeds1 = 0; % To plot data
 speeds2 = 0;
 times = 0;
 
@@ -106,14 +99,16 @@ tic
 pause(0.03)
 while toc < runTime
 
+    % Setting time difference
     dt = toc - prevTime;
     prevTime = toc;
 
-    errorS = endSpeed - curSpeed;
+    % Calculate the error and related terms
+    errorS = '?';
 
-    integralS = integralS + errorS * dt;
+    integralS = '?';
 
-    derivativeS = (errorS - prevErrorS) / dt;
+    derivativeS = '?';
 
     pidS = KpS * errorS + KiS * integralS + KdS * derivativeS;
 
@@ -125,9 +120,9 @@ while toc < runTime
     % rightCountsPerSec = -nb.encoderRead(1).counts; % Negative due to flipped encoder
 
     % Calculate the velocity error
-    % errorT = leftCountsPerSec - rightCountsPerSec;
-    % integralT = integralT + errorT * dt;
-    % derivativeT = (errorT - prevErrorT)/dt;
+    % errorT = '?';
+    % integralT = '?';
+    % derivativeT = '?';
 
     % Apply PID control to adjust motor speeds
     %correction = KpT * errorT + KiT * integralT + KdT * derivativeT;
