@@ -1,7 +1,8 @@
 clc
 clear all
 
-% First, scan the current USB devices
+% First, scan the current 
+% USB devices
 initialPorts = serialportlist;
 
 % Prompt the user

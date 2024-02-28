@@ -27,7 +27,7 @@
 
 clc
 clear all
-nb = nanobot('COM50', 115200, 'serial');
+nb = nanobot('COM47', 115200, 'serial');
 
 %% 2. Approximating the encoder's sampling frequency
 % To gain an approximation of the encoder's sampling frequency, we want to
@@ -40,16 +40,18 @@ tic
 runtime = 1;
 % 14% duty cycle seems to be the lowest that doesn't cause aliasing
 % wraparound with the encoder.
-nb.setMotor(1,10); % orig 10
-nb.setMotor(2,10);
+nb.setMotor(3, 14); % Jump start the motor
+pause(0.01);
+nb.setMotor(3,10); % orig 10
+% nb.setMotor(2,10);
 pause(1); % Allow motor to reach constant speed
 val = nb.encoderRead(1);
 pause(runtime);
 val = nb.encoderRead(1);
 
 fprintf('counts since last read: %i, counts per second: %i\n', val.counts,val.countspersec);
-nb.setMotor(1,0);
-nb.setMotor(2,0);
+nb.setMotor(3,0);
+% nb.setMotor(2,0);
 
 % Did val.counts samples in runtime sec, calculate sample freq:
 sampleFreq = abs(val.counts / runtime);
@@ -65,6 +67,16 @@ sampleFreq = abs(val.counts / runtime);
 val.counts = 0;
 val.countspersec = 0;
 
+%% Mapping Encoder counts over time to duty cycle
+dutyArray = [0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+CPSArray = [0, -247, -541, -1007, -1332, -1810, -2320, -2647, -3077, -3444, -3736];
+
+plot(dutyArray, abs(CPSArray));
+
+duty = 4;
+cps = interp1(dutyArray, CPSArray, duty);
+
+
 %% Creating a PID controller
 % In this section, we will be using a PID controller to approach a given
 % duty cycle value smoothly over time. You will need to tune your PID
@@ -72,9 +84,9 @@ val.countspersec = 0;
 % amplitude oscilations less than 2%, and a rise time of less than 500 ms.
 
 % PID terms for speed
-KpS = 1; % Proportional gain
+KpS = 3; % Proportional gain
 KiS = 0.0; % Integral gain
-KdS = 0.001; % Derivative gain
+KdS = 0.0; % Derivative gain
 
 % EXTENSION
 % PID terms to maintain straight line
@@ -95,7 +107,7 @@ integralS = 0;
 
 
 speeds1 = 0;
-speeds2 = 0;
+%speeds2 = 0;
 times = 0;
 
 prevTime = 0;
@@ -103,13 +115,18 @@ prevTime = 0;
 runTime = 3;
 
 tic
+val = nb.encoderRead(1);
 pause(0.03)
 while toc < runTime
 
     dt = toc - prevTime;
     prevTime = toc;
 
-    errorS = endSpeed - curSpeed;
+    % Get motor speed from encoder
+    val = nb.encoderRead(1);
+    approxDuty = interp1(CPSArray, dutyArray, (val.counts/dt)); % get approximate duty cycle from encoder counts over time
+
+    errorS = endSpeed - approxDuty;
 
     integralS = integralS + errorS * dt;
 
@@ -117,7 +134,7 @@ while toc < runTime
 
     pidS = KpS * errorS + KiS * integralS + KdS * derivativeS;
 
-    curSpeed = curSpeed + pidS;
+    control = approxDuty + pidS;
 
 
     % EXTENSION
@@ -135,34 +152,34 @@ while toc < runTime
 
 
     % Adjust motor speeds to maintain straight motion
-    motor2New = curSpeed; %- correction; EXTENSION
-    motor1New = curSpeed; %+ correction; EXTENSION
-    nb.setMotor(2, motor2New);
-    nb.setMotor(1, motor1New);
+    %motor2New = curSpeed; %- correction; EXTENSION
+    motor1New = control; %+ correction; EXTENSION
+    %nb.setMotor(2, motor2New);
+    nb.setMotor(3, motor1New);
 
     prevErrorS = errorS;
     % prevErrorT = errorT; % EXTENSION
 
-    speeds1(end+1) = motor1New;
-    speeds2(end+1) = motor2New;
+    speeds1(end+1) = approxDuty;
+    %speeds2(end+1) = motor2New;
     times(end+1) = toc;
 end
 pause(0.1);
-nb.setMotor(1,0);
-nb.setMotor(2,0);
+nb.setMotor(3,0);
+% nb.setMotor(2,0);
 
 clf
 plot(times, speeds1)
 hold on
-plot(times, speeds2)
+%plot(times, speeds2)
 yline(endSpeed,'-','Target')
 ylim([0, endSpeed+10])
 xlim ([0 runTime])
 hold off
 
 %% Stop motors (if running)
-nb.setMotor(1,0);
-nb.setMotor(2,0);
+nb.setMotor(3,0);
+%nb.setMotor(2,0);
 
 
 %% X. DISCONNECT

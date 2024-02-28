@@ -8,7 +8,7 @@
 #include "Adafruit_TCS34725.h"     // Click here to get the library: http://librarymanager/ALL#Adafruit_TCS34725
 
 //////// USER FLAGs /////////
-int sendMode = 0; //0 for serial, 1 for wifi
+int sendMode = 1; //0 for serial, 1 for wifi
 /////////////////////////////
 
 
@@ -20,7 +20,7 @@ udp_access_point * wifi;
 
 // Reflectance sensor setup variables
 QTRSensors qtr;
-const uint8_t SensorCount = 4;
+const uint8_t SensorCount = 6; // Was 4
 uint16_t sensorValues[SensorCount];
 
 //Create RGB Sensor
@@ -99,16 +99,19 @@ void performRGBSet(int red, int green, int blue) {
 
 
 // Function to perform reflectance sensor read and generate JSON reply
-void performReflectanceRead() {
+void performReflectanceRead(int pin) {
   qtr.read(sensorValues);
   StaticJsonDocument<JSON_BUFFER_SIZE> replyDoc;
-  replyDoc["one"] = sensorValues[0];
-  replyDoc["two"] = sensorValues[1];
-  replyDoc["three"] = sensorValues[2];
-  replyDoc["four"] = sensorValues[3];
+  replyDoc["one"] = sensorValues[5];
+  replyDoc["two"] = sensorValues[0];
+  replyDoc["three"] = sensorValues[1];
+  replyDoc["four"] = sensorValues[2];
+  replyDoc["five"] = sensorValues[3]; // Added
+  replyDoc["six"] = sensorValues[4]; // Added
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
   sendJson(replyBuffer, replySize);
+  
 
 }
 
@@ -191,11 +194,11 @@ void performPiezoTone(int frequency, int duration) {
 }
 
 
-void initReflectance() {
+void initReflectance(int pin) {
   qtr.setTypeRC();
-  const uint8_t SensorCount = 4;
+  const uint8_t SensorCount = 6; // prev: 4
   qtr.setSensorPins((const uint8_t[]) {
-    12, 11, 10, 8
+    9, 12, 11, 10, 8, 7 // Added 9, 7
   }, SensorCount);
 }
 
@@ -406,7 +409,7 @@ void executeCommand(String input) {
         performUltrasonicRead();
       }
       else if (strcmp(periph, "reflectance") == 0) {
-        performReflectanceRead();
+        performReflectanceRead(pin);
       }
       //else if (strcmp(periph, "color") ==0){}
     }
@@ -473,7 +476,7 @@ void executeCommand(String input) {
         sendAck();
       }
       else if (strcmp(periph, "reflectance") == 0) {
-        initReflectance();
+        initReflectance(pin);
         sendAck();
       }
       else if (strcmp(periph, "rgb") == 0) {

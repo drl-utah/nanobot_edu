@@ -179,14 +179,14 @@ nb.setPiezo(600,3000);
 %%
 % REFLECTANCE
 
-%Initialize the reflectance sensor with default pins D12, D11, D10, D8
+%Initialize the reflectance sensor with default pins D9, D12, D11, D10, D8, D7
 nb.initReflectance();
 
 %Take a single reflectance sensor reading
-val = nb.reflectanceRead;
+val = nb.reflectanceRead();
 
 %The sensor values are saved as fields in a structure:
-fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f\n', val.one, val.two, val.three, val.four);
+fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f five: %.2f six: %.2f\n', val.one, val.two, val.three, val.four, val.five, val.six);
 
 %%
 % PID
