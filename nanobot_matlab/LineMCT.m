@@ -19,10 +19,16 @@ d0=1.65;
 dt=0.1;
 prevError = 0;
 integral = 0;
+calibratedVals =   struct('one', 0, 'two', 0, 'three', 0, 'four', 0);
+    calibratedVals.one = 0;
+    calibratedVals.two = 0;
+    calibratedVals.three = 0;
+    calibratedVals.four =0;
 %Take a single reflectance sensor reading
-while true
+while ~(calibratedVals.one>300 &&calibratedVals.two>300 && calibratedVals.three>300 && calibratedVals.four>300)
+    tic;
     sensorVals = nb.reflectanceRead();
-    calibratedVals =   struct('one', 0, 'two', 0, 'three', 0, 'four', 0);
+    
     % Calibrate sensor readings
     calibratedVals.one = (sensorVals.one - minReflectance(1));
     calibratedVals.two = (sensorVals.two - minReflectance(2));
@@ -38,12 +44,12 @@ while true
     %nb.setMotors(Lmspeed,Rmspeed);
     previouserror = error;
     fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f, error: %.2f, LS: %0.2f, RS: %0.2f \n', calibratedVals.one, calibratedVals.two, calibratedVals.three, calibratedVals.four,error,Lmspeed,Rmspeed);
-    % if(Rmspeed>basespeed+5)
-    %     Rmspeed=basespeed+5;
-    % end
-    % if(Rmspeed<-(basespeed+5))
-    %     Rmspeed=-(basespeed+5);
-    % end
+    if(Rmspeed>basespeed+5)
+        Rmspeed=basespeed+5;
+    end
+    if(Rmspeed<-(basespeed+5))
+        Rmspeed=-(basespeed+5);
+    end
     % if(Lmspeed>basespeed+5)
     %     Lmspeed=basespeed+5;
     % end
@@ -59,4 +65,6 @@ while true
    
     nb.setMotor(1,Rmspeed);
     nb.setMotor(2, Lmspeed);
+    dt=toc;
 end
+nb.setMotors(0,0);

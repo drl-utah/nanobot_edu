@@ -274,6 +274,7 @@ Kd = 0.0005; % Derivative gain - adjust based on testing
  dt = 0.1;
  task =3;
  while true
+     tic;
       [l,lm,rm,r]=getIRvalues(nb);
      [~,leftDist]=getUSvalues(nb);
     if(leftDist>10)
@@ -316,7 +317,8 @@ Kd = 0.0005; % Derivative gain - adjust based on testing
     end
     nb.setMotor(1, speedM1); % Set right motor speed
     nb.setMotor(2, speedM2);% Set left motor speed
-    pause(dt);
+    %pause(dt);
+    dt=toc;
  end
 % wall Following Code include the below condition
                 % if (l>300 && lm>300 && rm>300 && r>300)
@@ -343,6 +345,7 @@ integral = 0;
   
 %Take a single reflectance sensor reading
 while true
+    tic;
     [l,lm,rm,r]=getIRvalues(nb);
     [fu,~]=getUSvalues(nb);
     if (task ==1 && botdirection ==1 && allDark(l,lm,rm,r))
@@ -393,6 +396,7 @@ while true
     end
     nb.setMotor(1,(Rmspeed-1));
     nb.setMotor(2, Lmspeed);
+    dt=toc;
 end
 
 % Line Following Code include the below condition
