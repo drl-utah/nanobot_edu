@@ -103,11 +103,11 @@ void performReflectanceRead(int pin) {
   qtr.read(sensorValues);
   StaticJsonDocument<JSON_BUFFER_SIZE> replyDoc;
   replyDoc["one"] = sensorValues[5];
-  replyDoc["two"] = sensorValues[0];
-  replyDoc["three"] = sensorValues[1];
-  replyDoc["four"] = sensorValues[2];
-  replyDoc["five"] = sensorValues[3]; // Added
-  replyDoc["six"] = sensorValues[4]; // Added
+  replyDoc["two"] = sensorValues[1];
+  replyDoc["three"] = sensorValues[2];
+  replyDoc["four"] = sensorValues[3];
+  replyDoc["five"] = sensorValues[4]; // Added
+  replyDoc["six"] = sensorValues[0]; // Added
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
   sendJson(replyBuffer, replySize);
@@ -198,7 +198,7 @@ void initReflectance(int pin) {
   qtr.setTypeRC();
   const uint8_t SensorCount = 6; // prev: 4
   qtr.setSensorPins((const uint8_t[]) {
-    9, 12, 11, 10, 8, 7 // Added 9, 7
+    A0, 12, 11, 10, 8, A1 // Added A0, A1
   }, SensorCount);
 }
 

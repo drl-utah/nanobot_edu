@@ -2,7 +2,7 @@ clc
 clear all
 
 % Create an instance of the nanobot class
-nb = nanobot('COM47', 115200, 'serial');
+nb = nanobot('COM49', 115200, 'wifi');
 
 %%
 % VALID PINS
