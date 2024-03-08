@@ -15,7 +15,7 @@ nb = nanobot('COM31', 115200, 'serial');
 frontWallThreshold = 10; % Adjust based on your requirement
 
 % Desired distance from the wall (adjust based on your requirement)
-desiredDist = 5; % Desired distance from the wall in centimeters
+desiredDist = 3; % Desired distance from the wall in centimeters
 
 
 % PID Controller parameters for wall following
@@ -32,6 +32,7 @@ Kd = 0.0005; % Derivative gain - adjust based on testing
 % 
 % Main loop
 while true
+    tic;
     % Read ultrasonic sensor values
     frontDist = nb.ultrasonicRead1()*0.01715; % Read front distance
     frontDist = 0;
@@ -75,10 +76,10 @@ while true
     if (speedM2>0 && speedM2>10)
     speedM2 = 10;
     end
-    if (speedM1<0 && speedM1<10)
+    if (speedM1<0 && speedM1<-10)
     speedM1 = -10;
     end
-    if (speedM2<0 && speedM2<10)
+    if (speedM2<0 && speedM2<-10)
     speedM2 = -10;
     end
     nb.setMotor(1, speedM1); % Set right motor speed
@@ -86,7 +87,7 @@ while true
 
     % Print distances for debugging
     fprintf('FD = %0.2f, LD = %0.2f, rightSPD: %0.2f, leftSPD: %0.2f \n', frontDist, leftDist,speedM1,speedM2);
-
+    dt=toc;
     % Optional: Add a delay to match the dt interval
-    pause(dt);
+    %pause(dt);
 end
