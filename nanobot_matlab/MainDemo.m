@@ -72,7 +72,7 @@ for i=1:length(selected_sequence)
             turnLefttillline(nb);
             botdirection =0;
             disp("follow line till all black read, read color");
-            lineFollowing(nb,currenttask,bot);
+            lineFollowing(nb,currenttask,botdirection);
            
             disp("Perform odometry based on color")
             performOdometrybycolor(nb,angleDeviation,odoDist);
@@ -95,6 +95,7 @@ for i=1:length(selected_sequence)
             disp("Turn Right till line detected...(middle 2 sensors black)");
             turnRighttillline(nb);
             disp("Following line till front sensor is < threshold.........");
+            botdirection = -1;
             lineFollowing(nb,currenttask,botdirection);
             disp("Turn Right and follow wall");
             turnrighttillcurvediverges(nb);
@@ -181,7 +182,7 @@ tic;
 end
 
 function [l,lm,rm,r] = getIRvalues(nb)
-    minReflectance  = [195,170,160,180];
+    minReflectance  = [200,180,180,200];
     sensorVals = nb.reflectanceRead();
     % Calibrate sensor readings
     l = (sensorVals.one - minReflectance(1));
@@ -330,10 +331,10 @@ end
 function lineFollowing(nb,task,botdirection)
    % minReflectance  = [145,145,145,145]; % Replace these with actual minimum values observed during calibration
 % maxReflectance  = [1225,1225,1225,1225]; % Replace these with actual maximum values observed during calibration
-kp=1.9;
-kd=0.01;
+kp=1.8;
+kd=0.001;
 ki=0;
-basespeed=9;
+basespeed=10;
 %Initialize the reflectance sensor with default pins D12, D11, D10, D8
 
 di=[0, 1.1, 2.2, 3.3];
