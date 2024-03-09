@@ -2,16 +2,17 @@
 clear; clc; close all;
 tic;
 % Create an instance of the nanobot class
-nb = nanobot('COM31', 115200, 'serial');
+nb = nanobot('COM32', 115200, 'serial');
 
 %% main code
 % Intialize all sensors and motors
 initallSensors(nb);
 botdirection =0;
 walloffset =0;
-color ='';
+color ="";
 angleDeviation =30;
 odoDist=20;
+%%
 linecompletionflag =false;
 wallcompletionflag = false;
 odometrycompletionflag = false;
@@ -73,7 +74,7 @@ for i=1:length(selected_sequence)
             botdirection =0;
             disp("follow line till all black read, read color");
             lineFollowing(nb,currenttask,botdirection);
-           
+           %%
             disp("Perform odometry based on color")
             performOdometrybycolor(nb,angleDeviation,odoDist);
             odometrycompletionflag =true;
@@ -242,7 +243,7 @@ end
 
 
 function initallSensors(nb)
-    % Initialize sensors and motors
+    %% Initialize sensors and motors
     nb.initReflectance(); % IR Sensor
     nb.initColor(); % Color sensor
     nb.initUltrasonic1('D2','D3'); % front sensor
@@ -407,26 +408,88 @@ end
                 % end
 end
 
+
 function performOdometrybycolor(nb,angleDeviation,odoDist)
     disp("Inside Odometry");
 
      [r,g,b]= getColorvalues(nb);
             if(r>g &&r>b)
+                color="r";
                 disp("Color is Red");
                 disp("Color is red turn Left and travel");
                 performOdometry(nb,(-angleDeviation),odoDist);
+                goStraightbalanced(nb,color);
+                
             end
-            if(b>g &&b>r)
-                disp("Color is Blue");
-                performOdometry(nb,0,odoDist);
-            end
-            if(g>r &&g>b)
+            if(g>b &&g>r)
+                color="g";
                 disp("Color is Green");
+                performOdometry(nb,0,odoDist);
+                goStraightbalanced(nb,color);
+            end
+            if(b>r &&b>g)
+                color="b";
+                disp("Color is Blue");
                 performOdometry(nb,angleDeviation,odoDist);
+                goStraightbalanced(nb,color);
             end
 
 end
+function goStraightbalanced(nb,color)
+    % wheel Speed Balance
+%% Set the desired speed
+desiredSpeed = 10;
+% PID Controller parameters (need to be tuned for your robot)
+Kp = 0.01; % Proportional gain
+Ki = 0.0;  % Integral gain
+Kd = 0.003; % Derivative gain
 
+% Initialize PID variables
+prevError = 0;
+integral = 0;
+dt = 0.1; % Time step in seconds
+tf=tic;
+while true
+    tic;
+    [r,g,b]=getColorvalues(nb);
+    if(r>g && r>b && r>110 && color =="r")
+        setMotorstozero(nb);
+        break;
+    end
+    
+    if(b>g && b>r && b>110 && color == "b")
+        setMotorstozero(nb);
+        break;
+    end
+    
+    tfc=toc(tf);
+
+    if(tfc>2)
+        nb.setMotors(0,0);
+        break;
+    end
+    % Read the encoder counts for both motors
+    leftCountsPerSec = nb.encoderRead(2).countspersec;
+    rightCountsPerSec = -nb.encoderRead(1).countspersec;
+
+    % Calculate the velocity error
+    error = leftCountsPerSec - rightCountsPerSec;
+
+    % Apply PID control to adjust motor speeds
+    correction = Kp * error + Ki * integral + Kd * (error - prevError) / dt;
+    
+    % Adjust motor speeds to maintain straight motion
+    nb.setMotor(2, desiredSpeed - correction);
+    nb.setMotor(1, desiredSpeed + correction);
+    fprintf('Time: %0.2f === Mot2: %0.2f === Mot1: %0.2f\n', tfc,desiredSpeed - correction,desiredSpeed + correction);
+    % Update PID variables
+    prevError = error;
+    integral = integral + error * dt;
+
+    % Pause for the specified time step
+    dt=toc;
+end
+end
 function performOdometry(nb,angleDeviation,odoDist)
     disp("Inside Odometry");
     %Odometry code
@@ -449,7 +512,7 @@ function performOdometry(nb,angleDeviation,odoDist)
     totalRightEncoderCounts=0;
 
     if(angleDeviation>0)
-        disp("Color is green turn rigght and travel");
+        disp("Color is Blue turn rigght and travel");
         while totalLeftEncoderCounts<requiredCounts
             tic;
             deltaLeftEncoderCounts = nb.encoderRead(2).counts;
@@ -477,7 +540,7 @@ function performOdometry(nb,angleDeviation,odoDist)
 
 
     elseif(angleDeviation ==0)
-        disp("Color is Blue straight travel");
+        disp("Color is Green straight travel");
     else
         disp("Color is red turn Left and travel");
         while totalRightEncoderCounts<requiredCounts
