@@ -328,11 +328,13 @@ classdef nanobot < handle
                     end
                 case 'reflectance'
                     % For 'reflectance', we expect 'one', 'two', 'three', and 'four' fields
-                    if isfield(jsonReply, 'one') && isfield(jsonReply, 'two') && isfield(jsonReply, 'three') && isfield(jsonReply, 'four')
+                    if isfield(jsonReply, 'one') && isfield(jsonReply, 'two') && isfield(jsonReply, 'three') && isfield(jsonReply, 'four') && isfield(jsonReply, 'five') && isfield(jsonReply, 'six') % Added 5 and 6
                         value.one = jsonReply.one;
                         value.two = jsonReply.two;
                         value.three = jsonReply.three;
                         value.four = jsonReply.four;
+                        value.five = jsonReply.five;
+                        value.six = jsonReply.six;
                     else
                         error('Invalid accelerometer values');
                     end
