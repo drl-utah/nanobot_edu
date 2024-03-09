@@ -8,7 +8,7 @@
 #include "Adafruit_TCS34725.h"     // Click here to get the library: http://librarymanager/ALL#Adafruit_TCS34725
 
 //////// USER FLAGs /////////
-int sendMode = 1; //0 for serial, 1 for wifi
+int sendMode = 0; //0 for serial, 1 for wifi
 /////////////////////////////
 
 
@@ -20,7 +20,7 @@ udp_access_point * wifi;
 
 // Reflectance sensor setup variables
 QTRSensors qtr;
-const uint8_t SensorCount = 4;
+const uint8_t SensorCount = 6; // Was 4
 uint16_t sensorValues[SensorCount];
 
 //Create RGB Sensor
@@ -104,14 +104,15 @@ void performRGBSet(int red, int green, int blue) {
 void performReflectanceRead() {
   qtr.read(sensorValues);
   StaticJsonDocument<JSON_BUFFER_SIZE> replyDoc;
-  replyDoc["one"] = sensorValues[0];
+  replyDoc["one"] = sensorValues[5];
   replyDoc["two"] = sensorValues[1];
   replyDoc["three"] = sensorValues[2];
   replyDoc["four"] = sensorValues[3];
+  replyDoc["five"] = sensorValues[4]; // Added
+  replyDoc["six"] = sensorValues[0]; // Added
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
   sendJson(replyBuffer, replySize);
-
 }
 
 // Function to perform analogRead operation and generate JSON reply
@@ -195,9 +196,9 @@ void performPiezoTone(int frequency, int duration) {
 
 void initReflectance() {
   qtr.setTypeRC();
-  const uint8_t SensorCount = 4;
+  const uint8_t SensorCount = 6; // prev: 4
   qtr.setSensorPins((const uint8_t[]) {
-    12, 11, 10, 8
+    A0, 12, 11, 10, 8, A1 // Added A0, A1
   }, SensorCount);
 }
 
