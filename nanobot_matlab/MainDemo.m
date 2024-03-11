@@ -1,6 +1,5 @@
 %% Clean up
 clear; clc; close all;
-tic;
 % Create an instance of the nanobot class
 nb = nanobot('COM32', 115200, 'serial');
 
@@ -30,7 +29,7 @@ disp("B: " + num2str(available_Sequences("B")));
 
 disp("Choose sequence id A or B:");
 chosen_sequence = input("Enter sequence ID (A or B): ", 's');
-
+tf=tic;
 if isKey(available_Sequences, chosen_sequence)
     selected_sequence = available_Sequences(chosen_sequence);
     disp("You have chosen Sequence " + chosen_sequence);
@@ -61,7 +60,11 @@ for i=1:length(selected_sequence)
             disp("GO Straight");
             goStraighttillline(nb);
             disp("Following Line.........");
+            %%
+            currenttask =1;
+            botdirection =1;
             lineFollowing(nb,currenttask,botdirection);
+            %%
             disp("Detected all black returnflagline = true robot about turn 180 deg,botdirection=-1 and foloow back line");
             botdirection =-1;
             linecompletionflag = true;
@@ -73,8 +76,11 @@ for i=1:length(selected_sequence)
             turnLefttillline(nb);
             botdirection =0;
             disp("follow line till all black read, read color");
-            lineFollowing(nb,currenttask,botdirection);
+            
            %%
+            currenttask = 2;
+            botdirection = 0;
+            lineFollowing(nb,currenttask,botdirection);
             disp("Perform odometry based on color")
             performOdometrybycolor(nb,angleDeviation,odoDist);
             odometrycompletionflag =true;
@@ -128,7 +134,7 @@ for i=1:length(selected_sequence)
     end
     if(linecompletionflag && wallcompletionflag && odometrycompletionflag)
         disp("Task Done!!!!!");
-        fprintf("Elapsed Time is: %0.2f", toc);
+        fprintf("Elapsed Time is: %0.2f", toc(tf));
 
     end
 
@@ -182,14 +188,17 @@ tic;
             end
 end
 
-function [l,lm,rm,r] = getIRvalues(nb)
-    minReflectance  = [200,180,180,200];
+function [ll,l,lm,rm,r,rr] = getIRvalues(nb)
+    %minReflectance  = [260,210,180,180,210,300];
+    minReflectance  = [300,230,200,200,230,330];
     sensorVals = nb.reflectanceRead();
     % Calibrate sensor readings
-    l = (sensorVals.one - minReflectance(1));
-    lm = (sensorVals.two - minReflectance(2));
-    rm = (sensorVals.three - minReflectance(3));
-    r = (sensorVals.four - minReflectance(4));
+    ll = (sensorVals.one - minReflectance(1));
+    l = (sensorVals.two - minReflectance(2));
+    lm = (sensorVals.three - minReflectance(3));
+    rm = (sensorVals.four - minReflectance(4));
+    r=(sensorVals.five - minReflectance(5));
+    rr=(sensorVals.six - minReflectance(6));
 end
 
 function [fu,lu] = getUSvalues(nb)
@@ -250,9 +259,9 @@ function initallSensors(nb)
     nb.initUltrasonic2('D4','D5'); % left sensor
 end
 function onLine = checkonLine(nb)
-    [l,lm,rm,r] = getIRvalues(nb);
+    [ll,l,lm,rm,r,rr] = getIRvalues(nb);
     disp("Check for on Line");
-    if(l<300 && lm>300 && rm>300 && r<300)
+    if(ll<300 && l<300 && lm>300 && rm>300 && r<300 && rr<300)
         onLine = true;
     else
         onLine = false;
@@ -277,7 +286,7 @@ Kd = 0.0005; % Derivative gain - adjust based on testing
  task =3;
  while true
      tic;
-      [l,lm,rm,r]=getIRvalues(nb);
+      [ll,l,lm,rm,r,rr]=getIRvalues(nb);
      [~,leftDist]=getUSvalues(nb);
     if(leftDist>10)
 
@@ -329,77 +338,71 @@ Kd = 0.0005; % Derivative gain - adjust based on testing
                 % end
     
 end
-function lineFollowing(nb,task,botdirection)
-   % minReflectance  = [145,145,145,145]; % Replace these with actual minimum values observed during calibration
-% maxReflectance  = [1225,1225,1225,1225]; % Replace these with actual maximum values observed during calibration
-kp=1.8;
-kd=0.001;
-ki=0;
-basespeed=10;
-%Initialize the reflectance sensor with default pins D12, D11, D10, D8
+function lineFollowing(nb,task,botdirection)   
+    kp=1.15;
+    kd=-0.005;
+    ki=-0.0000005;
+    basespeed=9;
+    % Motor offset factor:
+    di=[0, 1.4, 2.5, 3.6, 4.7, 6.1];
+    d0=3.05;
+    dt=0.1;
+    prevError = 0;
+    integral = 0;
 
-di=[0, 1.1, 2.2, 3.3];
-d0=1.65;
-dt=0.1;
-prevError = 0;
-integral = 0;
-
-  
-%Take a single reflectance sensor reading
-while true
-    tic;
-    [l,lm,rm,r]=getIRvalues(nb);
-    [fu,~]=getUSvalues(nb);
-    if (task ==1 && botdirection ==1 && allDark(l,lm,rm,r))
-        aboutTurn(nb);
-        botdirection = -1;
-        continue;
-    end
-    if (task ==1 && botdirection ~=1 && allDark(l,lm,rm,r))
-        setMotorstozero(nb);
-        
-        break;
-    end
-    if(task==3 && botdirection ==1 && allDark(l,lm,rm,r))
-        setMotorstozero(nb);
-        break;
-
-    end
-    if(task==3 && botdirection ==-1 && fu <15)
-        setMotorstozero(nb);
-        break;
-    end
-    if(allDark(l,lm,rm,r) && botdirection==0)
-        setMotorstozero(nb);
-        break;
-    end
-
-    d = (l * di(1) + lm * di(2) + rm * di(3) + r * di(4)) / (l+lm+rm+r);
-    error= d0-d;
+    while true
+        tic;
+        [ll,l,lm,rm,r,rr]=getIRvalues(nb);
+        [fu,~]=getUSvalues(nb);
+        if (task ==1 && botdirection ==1 && allDark(l,lm,rm,r))
+            aboutTurn(nb);
+            botdirection = -1;
+            continue;
+        end
+        if (task ==1 && botdirection ~=1 && allDark(l,lm,rm,r))
+            setMotorstozero(nb);
+            
+            break;
+        end
+        if(task==3 && botdirection ==1 && allDark(l,lm,rm,r))
+            setMotorstozero(nb);
+            break;
     
-    integral = integral + error * dt;
-    derivative = (error - prevError) / dt;
-    Lmspeed=basespeed - (kp*error+ki*integral+kd*derivative);
-    Rmspeed=basespeed + (kp*error+ki*integral+kd*derivative);
-    %nb.setMotors(Lmspeed,Rmspeed);
-    prevError = error;
-    fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f, error: %.2f, LS: %0.2f, RS: %0.2f \n', l, lm, rm, r,error,Lmspeed,Rmspeed);
-    if(Rmspeed>basespeed+5)
-        Rmspeed=basespeed+5;
+        end
+        if(task==3 && botdirection ==-1 && fu <15)
+            setMotorstozero(nb);
+            break;
+        end
+        if(allDark(l,lm,rm,r) && botdirection==0)
+            setMotorstozero(nb);
+            break;
+        end
+    
+         d = (ll * di(1) + l * di(2) + lm * di(3) + rm * di(4) + r * di(5) + rr * di(6)) / (ll+l+lm+rm+r+rr);
+         error= d0-d;
+        %error = -3*ll - 2*l - 1*lm + 1*rm + 2*r + 3*rr;
+        integral = integral + error * dt;
+        derivative = (error - prevError) / dt;
+        Lmspeed=basespeed - (kp*error+ki*integral+kd*derivative);
+        Rmspeed=basespeed + (kp*error+ki*integral+kd*derivative);
+        previouserror = error;
+        fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f, five: %.2f, six: %.2f, error: %.2f, LS: %.2f, RS: %.2f \n', ll,l,lm,rm,r,rr,error,Lmspeed,Rmspeed);
+        % if(Rmspeed>basespeed+5)
+        %     Rmspeed=basespeed+5;
+        % end
+        % if(Rmspeed<-(basespeed+5))
+        %     Rmspeed=-(basespeed+5);
+        % end
+        % if(Lmspeed>basespeed+5)
+        %     Lmspeed=basespeed+5;
+        % end
+        % if(Lmspeed<-(basespeed+5))
+        %     Lmspeed=-(basespeed+5);
+        % end
+        nb.setMotor(1,Rmspeed);
+        nb.setMotor(2, Lmspeed);
+        dt=toc;
     end
-    if(Rmspeed<-(basespeed+5))
-        Rmspeed=-(basespeed+5);
-    end
-    if(Lmspeed>basespeed+5)
-        Lmspeed=basespeed+5;
-    end
-    if(Lmspeed<-(basespeed+5))
-        Lmspeed=-(basespeed+5);
-    end
-    nb.setMotor(1,(Rmspeed-1));
-    nb.setMotor(2, Lmspeed);
-    dt=toc;
-end
 
 % Line Following Code include the below condition
                 % if (l>300 && lm>300 && rm>300 && r>300)
