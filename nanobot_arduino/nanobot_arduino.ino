@@ -8,7 +8,7 @@
 #include "Adafruit_TCS34725.h"     // Click here to get the library: http://librarymanager/ALL#Adafruit_TCS34725
 
 //////// USER FLAGs /////////
-int sendMode = 1; //0 for serial, 1 for wifi
+int sendMode = 0; //0 for serial, 1 for wifi
 /////////////////////////////
 
 
@@ -32,8 +32,10 @@ char jsonBuffer[JSON_BUFFER_SIZE];
 StaticJsonDocument<JSON_BUFFER_SIZE> doc;
 
 //Peripheral pins that get initialized by user
-int trigPin = 255;
-int echoPin = 255;
+int trigPin1 = 255;
+int echoPin1 = 255;
+int trigPin2 = 255;
+int echoPin2 = 255;
 int tonePin = 255;
 int redPin = 255;
 int greenPin = 255;
@@ -99,7 +101,7 @@ void performRGBSet(int red, int green, int blue) {
 
 
 // Function to perform reflectance sensor read and generate JSON reply
-void performReflectanceRead(int pin) {
+void performReflectanceRead() {
   qtr.read(sensorValues);
   StaticJsonDocument<JSON_BUFFER_SIZE> replyDoc;
   replyDoc["one"] = sensorValues[5];
@@ -111,8 +113,6 @@ void performReflectanceRead(int pin) {
   char replyBuffer[JSON_BUFFER_SIZE];
   size_t replySize = serializeJson(replyDoc, replyBuffer, JSON_BUFFER_SIZE);
   sendJson(replyBuffer, replySize);
-  
-
 }
 
 // Function to perform analogRead operation and generate JSON reply
@@ -132,7 +132,7 @@ void performAccelRead() {
   sendJson(replyBuffer, replySize);
 }
 
-void performUltrasonicRead() {
+void performUltrasonicRead(int trigPin, int echoPin) {
   if (trigPin < 255 && echoPin < 255) {
     unsigned long ultraread = 0; //pulseIn returns an unsigned long
     digitalWrite(trigPin, LOW);
@@ -194,7 +194,7 @@ void performPiezoTone(int frequency, int duration) {
 }
 
 
-void initReflectance(int pin) {
+void initReflectance() {
   qtr.setTypeRC();
   const uint8_t SensorCount = 6; // prev: 4
   qtr.setSensorPins((const uint8_t[]) {
@@ -405,13 +405,18 @@ void executeCommand(String input) {
       else if (strcmp(periph, "encoder") == 0) {
         performEncoderRead(pin);
       }
-      else if (strcmp(periph, "ultrasonic") == 0) {
-        performUltrasonicRead();
+      else if (strcmp(periph, "ultrasonic1") == 0) {
+        performUltrasonicRead(trigPin1,echoPin1);
+      }
+      else if (strcmp(periph, "ultrasonic2") == 0) {
+        performUltrasonicRead(trigPin2, echoPin2);
       }
       else if (strcmp(periph, "reflectance") == 0) {
-        performReflectanceRead(pin);
+        performReflectanceRead();
       }
-      //else if (strcmp(periph, "color") ==0){}
+      else if (strcmp(periph, "color") ==0){
+        performRGBRead();
+      }
     }
     // perform a "write" operation
     else if (strcmp(mode, "write") == 0) {
@@ -466,17 +471,22 @@ void executeCommand(String input) {
         pinMode(pin, OUTPUT);
         sendAck();
       }
-      else if (strcmp(periph, "ultrasonic") == 0) {
-        trigPin = pin; pinMode(trigPin, OUTPUT);
-        echoPin = value; pinMode(echoPin, INPUT);
+      else if (strcmp(periph, "ultrasonic1") == 0) {
+        trigPin1 = pin; pinMode(trigPin1, OUTPUT);
+        echoPin1 = value; pinMode(echoPin1, INPUT);
         sendAck();
       }
+        else if (strcmp(periph, "ultrasonic2") == 0) {
+        trigPin2 = pin; pinMode(trigPin2, OUTPUT);
+        echoPin2 = value; pinMode(echoPin2, INPUT);
+        sendAck();
+      } 
       else if (strcmp(periph, "piezo") == 0) {
         piezoMotorSwitcher(pin);
         sendAck();
       }
       else if (strcmp(periph, "reflectance") == 0) {
-        initReflectance(pin);
+        initReflectance();
         sendAck();
       }
       else if (strcmp(periph, "rgb") == 0) {
