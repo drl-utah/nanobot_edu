@@ -349,7 +349,6 @@ function lineFollowing(nb,task,botdirection)
     dt=0.1;
     prevError = 0;
     integral = 0;
-
     while true
         tic;
         [ll,l,lm,rm,r,rr]=getIRvalues(nb);
