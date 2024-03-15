@@ -157,7 +157,7 @@ for val = 0:25:250
 end
 nb.setRGB(0,0,0);
 
-%% 
+%%
 % ULTRASONIC DISTANCE
 
 %Initialize the ultrasonic sensor with TRIGPIN, ECHOPIN
@@ -167,8 +167,7 @@ front = nb.ultrasonicRead1();
 left = nb.ultrasonicRead2();
 %Take a single ultrasonic reading
 
-fprintf('Front dist = %i   Left dist = %i\n', front, left);
-
+fprintf('Front dist = %i   Left dist = %i\n', front, left)
 %%
 % PIEZO BUZZER
 
@@ -182,14 +181,14 @@ nb.setPiezo(600,3000);
 %%
 % REFLECTANCE
 
-%Initialize the reflectance sensor with default pins D9, D12, D11, D10, D8, D7
+%Initialize the reflectance sensor with default pins D12, D11, D10, D8
 nb.initReflectance();
 
 %Take a single reflectance sensor reading
-val = nb.reflectanceRead();
+val = nb.reflectanceRead;
 
 %The sensor values are saved as fields in a structure:
-fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f five: %.2f six: %.2f\n', val.one, val.two, val.three, val.four, val.five, val.six);
+fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f\n', val.one, val.two, val.three, val.four);
 
 %%
 % PID

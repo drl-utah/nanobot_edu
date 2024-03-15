@@ -34,7 +34,7 @@
 
 clc
 clear all
-nb = nanobot('COM49', 115200, 'wifi');
+nb = nanobot('COM50', 115200, 'wifi');
 
 %% RUN IF GOING TO USE CALIBRATED SENSOR VALUES - Calibrate Reflectance Minimums (white background)
 
@@ -79,7 +79,7 @@ mOffScale = 1.2;
 % Tip: when tuning kd, it must be the opposite sign of kp to damp
 kp = 0.0006; % Was 0.0006
 ki = 0.0;
-kd = -0.0001; % was -0.00015
+kd = -0.00015; % was -0.00015
 
 % Basic initialization
 vals = 0;

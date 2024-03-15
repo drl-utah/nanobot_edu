@@ -152,59 +152,6 @@ for i=1:length(selected_sequence)
 end
 
 %%
-% nb.setMotor(1, 10);
-% nb.setMotor(2, 10);
-nb.initReflectance();
-duty = 0.3;
-updatePer = 0.1;
-motorDuty = 10;
-sf = 1.2;
-tic;
-while(toc < 10)
-    nb.setMotor(1, motorDuty);
-    nb.setMotor(2, sf * -motorDuty);
-    pause(duty*updatePer);
-    nb.setMotor(1, 0);
-    nb.setMotor(2, 0);
-    pause(updatePer*(1-duty));
-    vals = nb.reflectanceRead();
-    if(vals.one<300 && vals.two<300 && (vals.three>500 || vals.four>500) && vals.five<300 && vals.six<300)
-        fprintf("Match!\n");
-        break;
-    end
-end
-nb.setMotor(1, 0);
-nb.setMotor(2, 0);
-
-%%
-nb.initReflectance();
-% turnOffLine(nb, 1.2, 0.25, 'l');
-turnTillLine(nb,9,1.2,'l');
-
-%%
-moveToBar(nb, 1.2);
-
-%%
-turnOffLine(nb, 1.2, 0.25, 'l');
-
-%%
-vals = nb.reflectanceRead();
-fprintf('one: %.2f, two: %.2f, three: %.2f four: %.2f five: %.2f six: %.2f\n', vals.one, vals.two, vals.three, vals.four, vals.five, vals.six);
-
-if(vals.one<300 && vals.two<300 && vals.three>300 && vals.four>300 && vals.five<300 && vals.six<300)
-        fprintf("Match!\n");
-end
-
-%%
-turnByAngle(nb, -30);
-
-%%
-nb.initUltrasonic1('D2','D3'); % front sensor
-nb.initUltrasonic2('D4','D5'); % left sensor
-[fu,walloffset] = getUSvalues(nb);
-wallFollowing(nb, 1, walloffset);
-
-%%
 nb.setMotor(1, 0);
 nb.setMotor(2, 0);
 
@@ -372,7 +319,7 @@ function lineFollowing(nb)
     % Tip: when tuning kd, it must be the opposite sign of kp to damp
     kp = 0.0006; % Was 0.0006
     ki = 0.0;
-    kd = -0.0001; % was -0.00015
+    kd = -0.00015; % was -0.00015
     
     % Basic initialization
     vals = 0;
@@ -408,7 +355,7 @@ function lineFollowing(nb)
 
         % TIME STEP
         dt = toc - prevTime;
-        %fprintf("%0.5f\n",dt);
+        fprintf("%0.5f\n",dt);
         prevTime = toc;
     
         vals = nb.reflectanceRead();

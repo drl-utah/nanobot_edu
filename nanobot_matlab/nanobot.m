@@ -111,8 +111,12 @@ classdef nanobot < handle
         end
 
         % Method to take an ultrasonic distance reading
-        function value = ultrasonicRead(obj)
-            value = obj.read('ultrasonic',0);
+        function value = ultrasonicRead1(obj)
+            value = obj.read('ultrasonic1',0);
+        end
+
+        function value = ultrasonicRead2(obj)
+            value = obj.read('ultrasonic2',0);
         end
 
         % Method to take a reflectance sensor distance reading
@@ -142,7 +146,7 @@ classdef nanobot < handle
 
         % Method to read from the RGB sensor
         function values = colorRead(obj)
-            values = obj.read('rgb',0);
+            values = obj.read('color',0);
         end
 
 
@@ -151,8 +155,12 @@ classdef nanobot < handle
         % INITS
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Method to initialize the ultrasonic rangefinder
-        function initUltrasonic(obj,trigpin,echopin)
-            obj.init('ultrasonic',trigpin,echopin)
+        function initUltrasonic1(obj,trigpin,echopin)
+            obj.init('ultrasonic1',trigpin,echopin)
+        end
+
+        function initUltrasonic2(obj,trigpin,echopin)
+            obj.init('ultrasonic2',trigpin,echopin)
         end
 
         % Method to initialize a piezo buzzer
@@ -311,7 +319,7 @@ classdef nanobot < handle
                     else
                         error('Invalid encoder values');
                     end
-                case {'digital', 'analog', 'ultrasonic'}
+                case {'digital', 'analog', 'ultrasonic1','ultrasonic2'}
                     % For 'digital', 'analog', and 'ultrasonic', we expect a 'value' field
                     if isfield(jsonReply, 'value')
                         value = jsonReply.value;
@@ -328,9 +336,10 @@ classdef nanobot < handle
                         value.five = jsonReply.five;
                         value.six = jsonReply.six;
                     else
-                        error('Invalid accelerometer values');
+                        % Don't update this cycle
+                        disp('Invalid accelerometer values');
                     end
-                case 'rgb'
+                case 'color'
                     if isfield(jsonReply, 'red') && isfield(jsonReply, 'green') && isfield(jsonReply, 'blue')
                         value.red = jsonReply.red;
                         value.green = jsonReply.green;
@@ -372,7 +381,11 @@ classdef nanobot < handle
             switch periph
                 case 'arduino'
                     obj.sendJSON('init',periph,0,0);
-                case 'ultrasonic'
+                case 'ultrasonic1'
+                    trigPin = obj.convertPin(pin);
+                    echoPin = obj.convertPin(value);
+                    obj.sendJSON('init', periph, trigPin, echoPin);
+                 case 'ultrasonic2'
                     trigPin = obj.convertPin(pin);
                     echoPin = obj.convertPin(value);
                     obj.sendJSON('init', periph, trigPin, echoPin);
@@ -385,6 +398,8 @@ classdef nanobot < handle
                 case 'wifi'
                     obj.sendJSON('init',periph,0,0);
                 case 'reflectance'
+                    obj.sendJSON('init',periph,0,0);
+                case 'color'
                     obj.sendJSON('init',periph,0,0);
                 case 'rgb'
                     pin = obj.convertPin(pin);

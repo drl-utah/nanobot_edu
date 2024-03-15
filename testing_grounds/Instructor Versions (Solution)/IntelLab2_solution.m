@@ -63,7 +63,7 @@ for a = 1:gestureCount %iterate through all gestures
 
         %%%%%%%%%% CALCULATE FEATURES (YOUR CODE GOES HERE) %%%%%%%%%%%%%%%
 
-        Features(a,b,:) = mean(singleLetter, 2);
+        Features(a,b,:) = mean(singleLetter, 2); % Take the mean of each axis for trial and keep that vector as a feature
 
         %%%%%%%%%%%%%%%%%%%%%%%% END OF YOUR CODE %%%%%%%%%%%%%%%%%%%%%%%%%
     end
