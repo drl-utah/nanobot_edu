@@ -2,7 +2,7 @@ clc
 clear all
 
 % Create an instance of the nanobot class
-nb = nanobot('COM47', 115200, 'serial');
+nb = nanobot('COM47', 115200, 'wifi');
 
 %%
 % VALID PINS
@@ -112,7 +112,7 @@ nb.setMotor(1,0)
 % ENCODER READ
 
 %Specify which encoder to read from (e.g., HA1/HB1 or HA2/HB2)
-val = nb.encoderRead(1);
+val = nb.encoderRead(2);
 fprintf('counts since last read: %i, counts per second: %i\n', val.counts,val.countspersec);
 
 %%
