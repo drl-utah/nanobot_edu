@@ -16,6 +16,7 @@ approachdist = 15;
 linecompletionflag =false;
 wallcompletionflag = false;
 odometrycompletionflag = false;
+%%
 disp("Choose a Sequence...");
 disp("1. Line following");
 disp("2. Odometry");
@@ -202,7 +203,7 @@ function goStraighttillline(nb)
 tic;
             while true
                 setMotorstostraight(nb);
-                if (toc>0.2 )
+                if (toc>0.2 && checkonLine(nb))
                     setMotorstozero(nb);
                     break;
                 end
@@ -282,7 +283,7 @@ end
 function onLine = checkonLine(nb)
     [ll,l,lm,rm,r,rr] = getIRvalues(nb);
     disp("Check for on Line");
-    if((ll<300 && rr<300)&&(lm>300||rm>300||l>300||r>300))
+    if((ll<500 && rr<500)&&(lm>300||rm>300||l>300||r>300))
         onLine = true;
     else
         onLine = false;
@@ -290,7 +291,7 @@ function onLine = checkonLine(nb)
 end
 
 function onBar = allDark(l,lm,rm,r)
-if (l>300 && lm>300 && rm>300 && r>300)
+if (l>500 && lm>500 && rm>500 && r>500)
     onBar = true;
 else
     onBar = false;
@@ -461,7 +462,7 @@ function performOdometrybycolor(nb,angleDeviation,odoDist)
                 goStraightbalanced(nb,color);
                 
             end
-            if(g>b &&g>r)
+            if(g>b && g>r && g>115)
                 color="g";
                 disp("Color is Green");
                 performOdometry(nb,angleDeviation,odoDist);
@@ -501,7 +502,7 @@ while true
         setMotorstozero(nb);
         break;
     end
-    if(g>b && g>r && g>130 && color == "g")
+    if(g>b && g>r && g>115 && color == "g")
         setMotorstozero(nb);
         break;
     end
@@ -556,7 +557,7 @@ function performOdometry(nb,angleDeviation,odoDist)
     totalRightEncoderCounts=0;
 
     if(angleDeviation>0)
-        disp("Color is Blue turn rigght and travel");
+        disp("Color is GREEN turn rigght and travel");
         while totalLeftEncoderCounts<requiredCounts
             tic;
             deltaLeftEncoderCounts = nb.encoderRead(2).counts;
@@ -584,7 +585,7 @@ function performOdometry(nb,angleDeviation,odoDist)
 
 
     elseif(angleDeviation ==0)
-        disp("Color is Green straight travel");
+        disp("Color is Blue straight travel");
     else
         disp("Color is red turn Left and travel");
         while totalRightEncoderCounts<requiredCounts
