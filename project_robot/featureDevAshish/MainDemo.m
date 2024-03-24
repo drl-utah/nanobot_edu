@@ -9,7 +9,7 @@ initallSensors(nb);
 botdirection =0;
 walloffset =0;
 color ="";
-angleDeviation =30;
+angleDeviation =45;
 odoDist=20;
 approachdist = 15;
 %%
@@ -202,7 +202,7 @@ function goStraighttillline(nb)
 tic;
             while true
                 setMotorstostraight(nb);
-                if (toc>0.1)
+                if (toc>0.2 )
                     setMotorstozero(nb);
                     break;
                 end
@@ -238,7 +238,7 @@ function [r,g,b]= getColorvalues(nb)
 end
 
 function setMotorstostraight(nb)
-    nb.setMotor(2,9.5);
+    nb.setMotor(2,9.8);
     nb.setMotor(1,9);
 end
 
@@ -282,7 +282,7 @@ end
 function onLine = checkonLine(nb)
     [ll,l,lm,rm,r,rr] = getIRvalues(nb);
     disp("Check for on Line");
-    if(ll<300 && l<300 && lm>300 && rm>300 && r<300 && rr<300)
+    if((ll<300 && rr<300)&&(lm>300||rm>300||l>300||r>300))
         onLine = true;
     else
         onLine = false;
@@ -367,7 +367,7 @@ function lineFollowing(nb,task,botdirection)
     % Tip: when tuning kd, it must be the opposite sign of kp to damp
     kp = 0.0006; % Was 0.0006
     ki = 0.0;
-    kd = -0.0003; % was -0.00015
+    kd = -0.00015; % was -0.00015
     
     % Basic initialization
     vals = 0;
@@ -375,8 +375,8 @@ function lineFollowing(nb,task,botdirection)
     prevTime = 0;
     integral = 0;
     derivative = 0;
-    motor1BaseSpeed = 8.5;
-    motor2BaseSpeed = 8.5;
+    motor1BaseSpeed = 9;
+    motor2BaseSpeed = 9;
     tic
     nb.setMotor(1, 10);
     nb.setMotor(2, mOffScale*10);
@@ -464,13 +464,13 @@ function performOdometrybycolor(nb,angleDeviation,odoDist)
             if(g>b &&g>r)
                 color="g";
                 disp("Color is Green");
-                performOdometry(nb,0,odoDist);
+                performOdometry(nb,angleDeviation,odoDist);
                 goStraightbalanced(nb,color);
             end
             if(b>r &&b>g)
                 color="b";
                 disp("Color is Blue");
-                performOdometry(nb,angleDeviation,odoDist);
+                performOdometry(nb,0,odoDist);
                 goStraightbalanced(nb,color);
             end
 
@@ -498,6 +498,10 @@ while true
     end
     
     if(b>g && b>r && b>110 && color == "b")
+        setMotorstozero(nb);
+        break;
+    end
+    if(g>b && g>r && g>130 && color == "g")
         setMotorstozero(nb);
         break;
     end
