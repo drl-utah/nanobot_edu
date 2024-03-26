@@ -149,6 +149,8 @@ end
 function approachWall(nb,approachdist)
 while true
     [fu,lu]=getUSvalues(nb);
+    nb.setMotor(1,9); 
+    nb.setMotor(2,10);
     if(fu>approachdist)
         setMotorstostraight(nb);
     else
@@ -159,6 +161,7 @@ end
 end
 function turnrighttillcurvediverges(nb)
     prevlu=0;
+    tic;
             while true
                 nb.setMotor(2,9);
                 nb.setMotor(1,0);
@@ -168,7 +171,7 @@ function turnrighttillcurvediverges(nb)
                     break;
                 end
 
-                if(fu>lu && lu<10 && prevlu<lu)
+                if((fu>lu && lu<10 && prevlu<lu)&&toc>1.3)
                     fprintf("FU: %0.2f, LU: %0.2f",fu,lu);
                     setMotorstozero(nb);
                     break;
@@ -181,7 +184,7 @@ function turnLefttillline(nb)
 tic;
             while true
                 setMotorstoleft(nb);
-                if (checkonLine(nb) && toc>0.3)
+                if (checkonLine(nb) && toc>0.4)
                     setMotorstozero(nb);
                     break;
                 end
@@ -192,7 +195,7 @@ function turnRighttillline(nb)
 tic;
             while true
                 setMotorstoright(nb);
-                if (checkonLine(nb) && toc>0.3)
+                if (checkonLine(nb) && toc>0.4)
                     setMotorstozero(nb);
                     break;
                 end
@@ -239,18 +242,18 @@ function [r,g,b]= getColorvalues(nb)
 end
 
 function setMotorstostraight(nb)
-    nb.setMotor(2,9.8);
+    nb.setMotor(2,9);
     nb.setMotor(1,9);
 end
 
 function setMotorstoleft(nb)
     nb.setMotor(2,0);
-    nb.setMotor(1,9);
+    nb.setMotor(1,9.5);
 end
 
 
 function setMotorstoright(nb)
-    nb.setMotor(2,9);
+    nb.setMotor(2,10);
     nb.setMotor(1,0);
 end
 
@@ -262,10 +265,11 @@ end
 
 
 function aboutTurn(nb)
-    nb.setMotor(2,-9.5);
+tic;
+    nb.setMotor(2,-10);
     nb.setMotor(1,9);
     while true
-        if (checkonLine(nb))
+        if (checkonLine(nb) && toc>0.5)
             setMotorstozero(nb);
             break;
         end
@@ -290,8 +294,8 @@ function onLine = checkonLine(nb)
     end
 end
 
-function onBar = allDark(l,lm,rm,r)
-if (l>500 && lm>500 && rm>500 && r>500)
+function onBar = allDark(ll,l,lm,rm,r,rr)
+if (ll>500 && l>500 && lm>500 && rm>500 && r>500 && rr>500)
     onBar = true;
 else
     onBar = false;
@@ -315,7 +319,7 @@ Kd = 0.0005; % Derivative gain - adjust based on testing 0.0005
 
         setMotorstozero(nb);
     end
-    if (botdirection ==-1 && allDark(l,lm,rm,r))
+    if (botdirection ==-1 && allDark(ll,l,lm,rm,r,rr))
         setMotorstozero(nb);
         turnRighttillline(nb);
         botdirection =1;
@@ -366,9 +370,9 @@ function lineFollowing(nb,task,botdirection)
     
     % TUNING:
     % Tip: when tuning kd, it must be the opposite sign of kp to damp
-    kp = 0.0006; % Was 0.0006
+    kp = 0.00055; % Was 0.0006
     ki = 0.0;
-    kd = -0.00015; % was -0.00015
+    kd = -0.00016; % was -0.00015
     
     % Basic initialization
     vals = 0;
@@ -389,29 +393,29 @@ function lineFollowing(nb,task,botdirection)
         [ll,l,lm,rm,r,rr]=getIRvalues(nb);
 
         if task ==1
-            if (botdirection ==1 && allDark(l,lm,rm,r))
+            if (botdirection ==1 && allDark(ll,l,lm,rm,r,rr))
                 aboutTurn(nb);
                 botdirection = -1;
                 continue;
             end
-            if (botdirection ~=1 && allDark(l,lm,rm,r))
+            if (botdirection ~=1 && allDark(ll,l,lm,rm,r,rr))
                 setMotorstozero(nb);
                 break;
             end
         end
 
         if task == 3
-            if( botdirection ==1 && allDark(l,lm,rm,r)&& count==0)
+            if( botdirection ==1 && allDark(ll,l,lm,rm,r,rr)&& count==0)
                 count = count+1;
                 goStraighttillline(nb);
                 continue;
             end
-            if( botdirection ==1 && allDark(l,lm,rm,r)&& count==1 )
+            if( botdirection ==1 && allDark(ll,l,lm,rm,r,rr)&& count==1 )
                 setMotorstozero(nb);
                 break;
             end
 
-            if(botdirection ==-1 && allDark(l,lm,rm,r))
+            if(botdirection ==-1 && allDark(ll,l,lm,rm,r,rr))
                 setMotorstozero(nb);
                 break;
             end
@@ -419,7 +423,7 @@ function lineFollowing(nb,task,botdirection)
         end
 
         
-        if(allDark(l,lm,rm,r) && botdirection==0)
+        if(allDark(ll,l,lm,rm,r,rr) && botdirection==0)
             setMotorstozero(nb);
             break;
         end
@@ -462,16 +466,16 @@ function performOdometrybycolor(nb,angleDeviation,odoDist)
                 goStraightbalanced(nb,color);
                 
             end
-            if(g>b && g>r && g>115)
-                color="g";
-                disp("Color is Green");
-                performOdometry(nb,angleDeviation,odoDist);
-                goStraightbalanced(nb,color);
-            end
-            if(b>r &&b>g)
+            % if(g>b && g>r && g>120)
+            %     color="g";
+            %     disp("Color is Green");
+            %     performOdometry(nb,angleDeviation,odoDist);
+            %     goStraightbalanced(nb,color);
+            % end
+            if(b>r &&b>100)
                 color="b";
                 disp("Color is Blue");
-                performOdometry(nb,0,odoDist);
+                performOdometry(nb,angleDeviation,odoDist);
                 goStraightbalanced(nb,color);
             end
 
@@ -498,14 +502,14 @@ while true
         break;
     end
     
-    if(b>g && b>r && b>110 && color == "b")
+    if(b>r && b>100 && color == "b")
         setMotorstozero(nb);
         break;
     end
-    if(g>b && g>r && g>115 && color == "g")
-        setMotorstozero(nb);
-        break;
-    end
+    % if(g>b && g>r && g>120 && color == "g")
+    %     setMotorstozero(nb);
+    %     break;
+    % end
     
     tfc=toc(tf);
 
@@ -557,7 +561,7 @@ function performOdometry(nb,angleDeviation,odoDist)
     totalRightEncoderCounts=0;
 
     if(angleDeviation>0)
-        disp("Color is GREEN turn rigght and travel");
+        disp("Color is BLUE turn rigght and travel");
         while totalLeftEncoderCounts<requiredCounts
             tic;
             deltaLeftEncoderCounts = nb.encoderRead(2).counts;
@@ -585,7 +589,7 @@ function performOdometry(nb,angleDeviation,odoDist)
 
 
     elseif(angleDeviation ==0)
-        disp("Color is Blue straight travel");
+        disp("Color is GREEN straight travel");
     else
         disp("Color is red turn Left and travel");
         while totalRightEncoderCounts<requiredCounts
